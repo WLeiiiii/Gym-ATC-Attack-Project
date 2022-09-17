@@ -55,14 +55,30 @@ class Agent2:
         # with torch.no_grad():  # turn off gradient descent since evaluating
         q_value_j = self.local_j(state)
         q_value_p = self.local_p(state)
-        print(q_value_j, q_value_p)
+        # print(q_value_j, q_value_p)
         q_value = q_value_j + q_value_p
-        print(q_value)
+        # print(np.argmax(q_value.cpu().data.numpy()))
+        # index_max = np.argsort(q_value.cpu().data.numpy())[-1][-1]
+        # print(index_max)
+        # print(q_value_p.cpu().data.numpy()[0][index_max], q_value_p)
+        # print(np.mean(q_value_p.cpu().data.numpy()))
+        # print(len(q_value[0]))
         self.local_j.train()  # back to train mode
         self.local_p.train()  # back to train mode
 
         if random.random() > epsilon:
-            return np.argmax(q_value.cpu().data.numpy())  # move q_value to cpu
+            # q_value_sort = np.sort(q_value.cpu().data.numpy())
+            for i in range(1, len(q_value[0])):
+                index_max = np.argsort(q_value.cpu().data.numpy())[-1][-i]
+                # print(index_max)
+                if q_value_p.cpu().data.numpy()[0][index_max] < np.mean(q_value_p.cpu().data.numpy()):
+                    # print(i)
+                    continue
+                else:
+                    # print(index_max)
+                    return index_max
+
+            # return np.argmax(q_value.cpu().data.numpy())  # move q_value to cpu
         else:
             return random.choice(np.arange(self.action_size))
         pass
@@ -86,7 +102,7 @@ class Agent2:
 
         q_target_next_p = self.target_p(next_states).detach().max(1)[0].unsqueeze(1)
         # detach the variable from the graph using detach()
-        q_target_p = rewards[0] + (gamma * q_target_next_p * (1 - dones))
+        q_target_p = rewards[1] + (gamma * q_target_next_p * (1 - dones))
         q_expected_p = self.local_p(states).gather(1, actions)
 
         loss = F.mse_loss(q_expected_p, q_target_p)

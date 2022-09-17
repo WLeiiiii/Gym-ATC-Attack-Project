@@ -29,7 +29,7 @@ current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
 def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.9999,
-          save_path="save_model/dqn_model_01.pth"):
+          save_path_j="../save_model/dqn_model_01_j.pth", save_path_p="../save_model/dqn_model_01_p.pth"):
     total_rewards_j = []
     reward_window_j = deque(maxlen=100)
     total_rewards_p = []
@@ -77,14 +77,16 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
                                                                                   np.mean(reward_window_p)))
         if i >= 1000:
             if last_mean_reward < (np.mean(reward_window_j) + np.mean(reward_window_p)) or i % 100 == 0:
-                torch.save(agent.local_j.state_dict(), save_path)
+                torch.save(agent.local_j.state_dict(), save_path_j)
+                torch.save(agent.local_p.state_dict(), save_path_p)
                 print('\rEpisode {}\tAverage Score_j+p: {:.2f}\tPrevious Score_j+p: {:.2f}'.format(i, np.mean(
                     reward_window_j) + np.mean(reward_window_p),
                                                                                                    last_mean_reward))
                 print('Model saved')
-                last_mean_reward = np.mean(reward_window_j)
+                last_mean_reward = np.mean(reward_window_j) + np.mean(reward_window_p)
 
-    torch.save(agent.local_j.state_dict(), save_path)
+    torch.save(agent.local_j.state_dict(), save_path_j)
+    torch.save(agent.local_p.state_dict(), save_path_p)
 
     env.close()
 
@@ -171,7 +173,8 @@ def main():
     parser.add_argument('--train', type=bool, default=True)
     parser.add_argument('--seed', type=int, default=9)
     # parser.add_argument('--load_path', type=str, default="save_model/dqn_model_01.pth")
-    parser.add_argument('--save_path', type=str, default='../save_model/dqn_random_goal_model_08.pth')
+    parser.add_argument('--save_path_j', type=str, default='../save_model/dqn_random_goal_model_08_j.pth')
+    parser.add_argument('--save_path_p', type=str, default='../save_model/dqn_random_goal_model_08_p.pth')
     args = parser.parse_args()
 
     env = SimpleEnv()
@@ -188,7 +191,7 @@ def main():
     agent = Agent2(state_size=env.observation_space.shape[0], action_size=env.action_space.n)
 
     if args.train:
-        train(env, agent, n_episodes=args.episodes, save_path=args.save_path)
+        train(env, agent, n_episodes=args.episodes, save_path_j=args.save_path_j, save_path_p=args.save_path_p)
 
     # evaluate(env, agent, save_path=args.save_path)
 
