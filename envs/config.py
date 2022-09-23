@@ -39,7 +39,7 @@ class Config:
     wall_penalty = -5 / 10
     step_penalty = -0.001 / 10
     goal_reward = 10 / 10
-    sparse_reward = True
+    sparse_reward = False
     conflict_coeff = 0.00025
 
     # Jonathan How R

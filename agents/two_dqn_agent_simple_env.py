@@ -47,37 +47,25 @@ class Agent2:
 
     def act(self, state, epsilon=0.):
         '''Choose an action given state using epsilon-greedy'''
-        # state = state.reshape(1, -1)
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        # state = state.float().unsqueeze(0).to(device)
         self.local_j.eval()  # change model to evaluation mode
         self.local_p.eval()
         # with torch.no_grad():  # turn off gradient descent since evaluating
         q_value_j = self.local_j(state)
         q_value_p = self.local_p(state)
-        # print(q_value_j, q_value_p)
         q_value = q_value_j + q_value_p
-        # print(np.argmax(q_value.cpu().data.numpy()))
-        # index_max = np.argsort(q_value.cpu().data.numpy())[-1][-1]
-        # print(index_max)
-        # print(q_value_p.cpu().data.numpy()[0][index_max], q_value_p)
-        # print(np.mean(q_value_p.cpu().data.numpy()))
-        # print(len(q_value[0]))
         self.local_j.train()  # back to train mode
         self.local_p.train()  # back to train mode
 
         if random.random() > epsilon:
-            # q_value_sort = np.sort(q_value.cpu().data.numpy())
             for i in range(1, len(q_value[0])):
                 index_max = np.argsort(q_value.cpu().data.numpy())[-1][-i]
-                # print(index_max)
-                if q_value_p.cpu().data.numpy()[0][index_max] < np.mean(q_value_p.cpu().data.numpy()):
-                    # print(i)
+                # if q_value_p.cpu().data.numpy()[0][index_max] < np.mean(q_value_p.cpu().data.numpy()):
+                if q_value_p.cpu().data.numpy()[0][index_max] < np.median(q_value_p.cpu().data.numpy()):
+                    print(np.mean(q_value_p.cpu().data.numpy()), np.median(q_value_p.cpu().data.numpy()))
                     continue
                 else:
-                    # print(index_max)
                     return index_max
-
             # return np.argmax(q_value.cpu().data.numpy())  # move q_value to cpu
         else:
             return random.choice(np.arange(self.action_size))
@@ -93,7 +81,6 @@ class Agent2:
         q_expected_j = self.local_j(states).gather(1, actions)
 
         loss = F.mse_loss(q_expected_j, q_target_j)
-        # print(loss)
         self.optimizer_j.zero_grad()  # zero gradient if not pytorch will accmulate
         loss.backward()
         self.optimizer_j.step()
@@ -106,7 +93,6 @@ class Agent2:
         q_expected_p = self.local_p(states).gather(1, actions)
 
         loss = F.mse_loss(q_expected_p, q_target_p)
-        # print(loss)
         self.optimizer_p.zero_grad()  # zero gradient if not pytorch will accmulate
         loss.backward()
         self.optimizer_p.step()

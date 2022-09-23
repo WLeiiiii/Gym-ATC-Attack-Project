@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 
 def fcLayer(input_units, output_units):
-    # print("In {},Out {}".format(input_units, output_units))
     return nn.Linear(input_units, output_units)
 
 
@@ -23,13 +22,9 @@ class ResBlock(nn.Module):
         self.downsample = downsample
 
     def forward(self, x):
-        # x = x.squeeze()
         residual = x
-        # print(x.shape)
         out = self.fc1(x)
-        # print(out.shape)
         out = self.bn1(out)
-        # print(out.shape)
         out = F.relu(out)
         out = self.fc2(out)
         out = self.bn2(out)
@@ -86,8 +81,6 @@ class QNetwork(nn.Module):
 
         advantage = F.relu(self.advantage_fc(x))
         advantage = self.advantage(advantage)
-        # print("Action: {}".format(advantage.size()))
-        # print("V: {}, Shape:{}".format(value, value.shape))
 
         return value + advantage - advantage.mean()
 

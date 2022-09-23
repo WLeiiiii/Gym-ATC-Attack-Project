@@ -14,25 +14,11 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
-# def display_frames_as_gif(frames):
-#     # print(frames[0])
-#     patch = plt.imshow(frames[0])
-#     plt.axis('off')
-#
-#     def animate(i):
-#         patch.set_data(frames[i])
-#     print("生成gif...")
-#     anim = animation.FuncAnimation(plt.gcf(), animate, frames=len(frames), interval=5)
-#     anim.save('../logs/results/gifs/' + 'result_dqn_' + current_time + '.gif', writer='pillow', fps=30)
-#     print("gif已保存！")
-
-
 def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.9999,
           save_path="save_model/dqn_model_01.pth"):
     total_rewards = []
     reward_window = deque(maxlen=100)
     epsilon = eps_start
-    # epsilon = 0
     last_mean_reward = -np.inf  # compare with reward_window to check save model or not
     for i in range(1, n_episodes + 1):
         episode_timestep = 0
@@ -44,7 +30,6 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
         while not done and episode_timestep < 200:
             env.render()
             observation = np.copy(last_ob)
-            # print(observation)
             episode_timestep += 1
             action = agent.act(observation, epsilon)
 
@@ -69,13 +54,13 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(reward_window)))
         if i >= 1000:
             if last_mean_reward < np.mean(reward_window) or i % 100 == 0:
-                torch.save(agent.local_j.state_dict(), save_path)
+                torch.save(agent.local.state_dict(), save_path)
                 print('\rEpisode {}\tAverage Score: {:.2f}\tPrevious Score: {:.2f}'.format(i, np.mean(reward_window),
                                                                                            last_mean_reward))
                 print('Model saved')
                 last_mean_reward = np.mean(reward_window)
 
-    torch.save(agent.local_j.state_dict(), save_path)
+    torch.save(agent.local.state_dict(), save_path)
 
     env.close()
 
@@ -98,8 +83,7 @@ def evaluate(env, agent, save_path):
     results =[]
     # frames = []
     reward_window = deque(maxlen=300)
-    # env = gym.wrappers.Monitor(env, './videos/' + 'SingleAircraft3env' + current_time)
-    agent.local_j.load_state_dict(torch.load(save_path))
+    agent.local.load_state_dict(torch.load(save_path))
     for i in range(300):
         frames = []
         last_ob = env.reset()
@@ -109,7 +93,6 @@ def evaluate(env, agent, save_path):
         episode_timestep = 0
         while not done and episode_timestep < 500:
             observation = np.copy(last_ob)
-            # print(observation.shape)
             action = agent.act(observation)
             # frames.append(env.render())
             env.render()
@@ -157,7 +140,6 @@ def evaluate(env, agent, save_path):
     plt.xlabel('Episode')
     plt.title("DQN_without_attack")
     plt.show()
-    pass
 
 
 def main():

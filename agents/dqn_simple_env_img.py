@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from agents.dqn_agent_simple_env_img import Agent
+from agents.dqn_agent_simple_env_img import AgentImg
 from envs.SimpleATC_env_img import SimpleImgEnv
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -35,7 +35,6 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
             # inputs = np.concatenate([observation, desired_goal], axis=-1)
             episode_timestep += 10
             action = agent.act(observation, epsilon)
-            # done = True
 
             for ___ in range(5):
                 new_ob, reward, done, _ = env.step(action)
@@ -46,11 +45,8 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
             agent.step(observation, action, reward, new_observation, done)
             # episode_experience.append((observation, action, reward, new_observation, done))
             last_ob = new_ob
-            # print(last_ob.shape)
             total_reward += reward
 
-        # print(episode_timestep)
-        # agent.add(episode_experience, env)
 
         reward_window.append(total_reward)
         total_rewards.append(total_reward)
@@ -62,7 +58,7 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
                   end="")
         if i >= 1000:
             if last_mean_reward < np.mean(reward_window) or i % 100 == 0:
-                torch.save(agent.local_j.state_dict(), save_path)
+                torch.save(agent.local.state_dict(), save_path)
                 print(
                     '\rEpisode {}\tAverage Score: {:.2f}\tPrevious Score: {:.2f}\tSteps: {}'.format(i, np.mean(
                         reward_window),
@@ -70,7 +66,7 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
                                                                                                     episode_timestep))
                 print('Model saved')
                 last_mean_reward = np.mean(reward_window)
-    torch.save(agent.local_j.state_dict(), save_path)
+    torch.save(agent.local.state_dict(), save_path)
 
     env.close()
     fig = plt.figure()
@@ -92,12 +88,7 @@ def main():
     args = parser.parse_args()
 
     env = SimpleImgEnv()
-    # print('state dimension:', env.observation_space.shape)
-    # print('number of intruders:', env.intruder_size)
-    # print("{}, {}".format(env.observation_space.shape[0], env.action_space.n))
-    agent = Agent(state_size=env.observation_space.shape[0], action_size=env.action_space.n)
-    # print(agent.state_size)
-    # print(agent.action_size)
+    agent = AgentImg(state_size=env.observation_space.shape[0], action_size=env.action_space.n)
 
     if args.load_path:
         agent.local.load_state_dict(torch.load(args.load_path))

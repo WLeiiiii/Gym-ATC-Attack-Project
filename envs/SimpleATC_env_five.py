@@ -386,6 +386,9 @@ class SimpleEnv(gym.Env):
     def terminal_info(self):
         return [self.goal_num, self.conflict_num, self.collision_num, self.max_step]
 
+    def init(self):
+        self.__init__()
+
 
 class Goal:
     def __init__(self, position):

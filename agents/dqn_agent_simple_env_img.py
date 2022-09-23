@@ -2,7 +2,6 @@ import numpy as np
 import random
 from collections import namedtuple, deque
 
-# from res_light import QNetwork, ResBlock
 from models.dqn_model_img import DQN
 
 import torch
@@ -19,8 +18,8 @@ LEARNING_RATE = 1e-4
 UPDATE_EVERY = 5
 
 
-class Agent():
-    '''Agent2 interacts with the environment'''
+class AgentImg():
+    '''AgentImg interacts with the environment'''
 
     def __init__(self, state_size, action_size):
         self.state_size = state_size
@@ -48,10 +47,8 @@ class Agent():
 
     def act(self, state, epsilon=0.):
         '''Choose an action given state using epsilon-greedy'''
-        # state = state.reshape(1, -1)
         # state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         state = torch.from_numpy(state).float().to(device)
-        # print(state.shape)
         self.local.eval()  # change model to evaluation mode (turn off dropout)
         with torch.no_grad():  # turn off gradient descent since evaluating
             q_value = self.local(state)
@@ -66,24 +63,18 @@ class Agent():
         '''learning from batch'''
         states, actions, rewards, next_states, dones = experiences
         # get the max predicted q value for next state
-        # print(next_states.shape)
-        # print(self.target(next_states))
-        # print(self.target(next_states).max(1)[0])
+
         q_target_next = self.target(next_states).detach().max(1)[0].unsqueeze(1)
-        # print("r{},q{},d{}".format(rewards.shape,q_target_next.shape,dones.shape))
-        # print(rewards.shape)
+
         # detach the variable from the graph using detach()
         q_target = rewards + (gamma * q_target_next * (1 - dones))
-        # print(q_target.shape)
-        # q_target = q_target.gather(1, actions)
-        # print(q_target)
+
         # if episode is done q_target equals to reward only
         q_expected = self.local(states).gather(1, actions)
-        # print(q_expected)
 
         # gradient step
         loss = F.mse_loss(q_expected, q_target)
-        # print(loss)
+
         self.optimizer.zero_grad()  # zero gradient if not pytorch will accmulate
         loss.backward()
         self.optimizer.step()

@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from agents.dqn_agent_simple_env import Agent
 # from attacks.uni_attack import attack
-from envs.SimpleATC_env import SimpleEnv
+from envs.SimpleATC_env_five import SimpleEnv
 from models.dqn_model import QNetwork, ResBlock
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -26,21 +26,14 @@ Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if 
 
 
 def attack(agent, obs_tensor):
-    # print(obs.shape)
-    # obs_tensor = torch.from_numpy(obs).float().unsqueeze(0).to("cuda:0")
-    # print(obs_tensor.shape)
-    action = agent.local_j.act(obs_tensor)
-    # action = agent.act(obs_tensor, epsilon)
-    # print(action)
-    # obs_tensor = torch.from_numpy(obs).float().unsqueeze(0).to("cuda:0")
+    action = agent.local.act(obs_tensor)
     obs = Variable(obs_tensor.data, requires_grad=True)
     action = torch.from_numpy(action).to("cuda:0")
-    # agent.local_j.eval()
-    logits = agent.local_j.forward(obs)
+    logits = agent.local.forward(obs)
     softmax = nn.Softmax(dim=-1)
     prob = softmax(logits)
     loss = F.nll_loss(prob, action)
-    agent.local_j.zero_grad()
+    agent.local.zero_grad()
     loss.backward()
     eta = 0.03 * obs.grad.data.sign()
     obs = Variable(obs.data + eta, requires_grad=True)
@@ -49,7 +42,7 @@ def attack(agent, obs_tensor):
 
 
 def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.9999,
-          save_path="../save_model/dqn_adv_train_model_03.pth"):
+          save_path="../save_model/dqn_adv_train_model_02.pth"):
     total_rewards = []
     reward_window = deque(maxlen=100)
     epsilon = eps_start
@@ -62,15 +55,11 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
         total_reward = 0
         done = False
         observation = np.copy(last_ob)
-        # ori_obs = torch.from_numpy(observation).float().unsqueeze(0).to("cuda:0")
-        while not done and episode_timestep < 200:
+        while not done and episode_timestep <= 200:
             env.render()
             ori_obs = torch.from_numpy(observation).float().unsqueeze(0).to("cuda:0")
-            # print(observation)
             episode_timestep += 1
-            # action = agent.local_j.act(ori_obs)
-            # print(action)
-            agent.local_j.eval()
+            agent.local.eval()
             if random.random() < 0.9:
                 obs = attack(agent, ori_obs)
             else:
@@ -82,14 +71,9 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
                 if done:
                     break
 
-            # new_observation = np.copy(new_ob)
-            # atk_obs = attack(agent, ori_obs, epsilon)
             agent.step()
 
             episode_experience.append((observation, action, reward, new_ob, done))
-            # last_ob = new_ob
-            # next_obs = torch.from_numpy(new_ob).float().unsqueeze(0).to("cuda:0")
-            # ori_obs = next_obs
             observation = new_ob
             total_reward += reward
             episode_timestep += 1
@@ -100,18 +84,18 @@ def train(env, agent, n_episodes=30000, eps_start=1.0, eps_end=0.01, decay=0.999
         total_rewards.append(total_reward)
         epsilon = max(eps_end, decay * epsilon)
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(reward_window)), end="")
-        # torch.save(agent.local_j.state_dict(), save_path)
+        # torch.save(agent.local.state_dict(), save_path)
         if i % 100 == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(reward_window)))
         if i >= 1000:
             if last_mean_reward < np.mean(reward_window) or i % 100 == 0:
-                torch.save(agent.local_j.state_dict(), save_path)
+                torch.save(agent.local.state_dict(), save_path)
                 print('\rEpisode {}\tAverage Score: {:.2f}\tPrevious Score: {:.2f}'.format(i, np.mean(reward_window),
                                                                                            last_mean_reward))
                 print('Model saved')
                 last_mean_reward = np.mean(reward_window)
 
-    torch.save(agent.local_j.state_dict(), save_path)
+    torch.save(agent.local.state_dict(), save_path)
 
     env.close()
 
@@ -131,10 +115,9 @@ def evaluate(env, agent, save_path="../save_model/dqn_adv_train_model_02.pth"):
     conflict_num = 0
     total_timestep = 0
     total_rewards = []
-    reward_window = deque(maxlen=300)
-    # env = gym.wrappers.Monitor(env, './videos/' + 'SingleAircraft3env' + current_time)
-    agent.local_j.load_state_dict(torch.load(save_path))
-    for i in range(300):
+    reward_window = deque(maxlen=500)
+    agent.local.load_state_dict(torch.load(save_path))
+    for i in range(500):
         last_ob = env.reset()
         done = False
         total_reward = 0
@@ -145,7 +128,7 @@ def evaluate(env, agent, save_path="../save_model/dqn_adv_train_model_02.pth"):
             # env.render()
             ori_obs = torch.from_numpy(observation).float().unsqueeze(0).to("cuda:0")
             episode_timestep += 1
-            agent.local_j.eval()
+            agent.local.eval()
             if random.random() < 0.9:
                 obs = attack(agent, ori_obs)
             else:
@@ -176,8 +159,8 @@ def evaluate(env, agent, save_path="../save_model/dqn_adv_train_model_02.pth"):
     print("测试结束")
     # env.close()
     print("----------Adv_training-----------")
-    print("goal_num: {}/300".format(goal_num))
-    print("collision_num: {}/300".format(collision_num))
+    print("goal_num: {}/500".format(goal_num))
+    print("collision_num: {}/500".format(collision_num))
     print("wall_num: {}/300".format(wall_num))
     print("conflict_frq: {}".format(conflict_frq))
     print("mean_score: {}".format(total_rewards[-1]))
@@ -196,11 +179,14 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--episodes', '-e', type=int, default=29999)
-    parser.add_argument('--train', type=bool, default=False)
-    parser.add_argument('--seed', type=int, default=101)
+    parser.add_argument('--train', type=bool, default=True)
+    parser.add_argument('--seed', type=int, default=9)
     # parser.add_argument('--load_path', type=str, default="save_model/dqn_model_01.pth")
-    parser.add_argument('--save_path', type=str, default='../save_model/dqn_random_goal_model_04.pth')
+    parser.add_argument('--save_path', type=str, default='../save_model/dqn_random_goal_model_06.pth')
     args = parser.parse_args()
+
+    random.seed(args.seed)
+    np.random.seed(args.seed)
 
     env = SimpleEnv()
     print('state dimension:', env.observation_space.shape)

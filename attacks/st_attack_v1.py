@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from attacks.attack import Attack, Variable
+from attacks.attack_v1 import Attack, Variable
 
 
 class STAttack(Attack):
