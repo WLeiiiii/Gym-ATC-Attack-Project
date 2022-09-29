@@ -157,8 +157,6 @@ class Attack:
         agent.zero_grad()
         loss.backward()
         eta = self.epsilon * obs.grad.data.sign()
-        # print("eta: {}".format(eta))
-        # print("Eta: {}".format(Beta(1, 1).sample().data * obs.grad.data.sign()))
         obs = Variable(obs.data + eta, requires_grad=True)
         obs.data = torch.clamp(obs.data, 0, 1)
         return obs

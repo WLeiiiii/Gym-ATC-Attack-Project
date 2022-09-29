@@ -8,7 +8,6 @@ from torch import autograd, nn
 from torch.distributions.beta import Beta
 import torch.nn.functional as F
 
-from models.dqn_model import QNetwork, ResBlock
 from utils.display_plt import display_plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -119,11 +118,7 @@ class Attack:
         pass
 
     def fgsm(self, obs, action, prob):
-        print("prob: {}".format(prob))
-        print("action: {}".format(action))
-        print(prob[-1][action.data.cpu().numpy()[-1]])
         loss = F.nll_loss(prob, action)
-        print(loss)
         self.agent.zero_grad()
         loss.backward()
         eta = self.epsilon * obs.grad.data.sign()

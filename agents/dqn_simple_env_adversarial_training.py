@@ -9,20 +9,12 @@ from torch import autograd, nn
 import torch.nn.functional as F
 
 from agents.dqn_agent_simple_env import Agent
-# from attacks.uni_attack import attack
 from envs.SimpleATC_env_five import SimpleEnv
-from models.dqn_model import QNetwork, ResBlock
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 USE_CUDA = torch.cuda.is_available()
 Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if USE_CUDA else autograd.Variable(*args,
                                                                                                                 **kwargs)
-# env = SimpleEnv()
-
-# agent = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(
-#     "cuda:0")
-# agent.load_state_dict(torch.load("../save_model/dqn_random_goal_model_03.pth"))
-# agent.eval()
 
 
 def attack(agent, obs_tensor):

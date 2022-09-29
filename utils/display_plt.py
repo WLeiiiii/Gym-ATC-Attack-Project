@@ -9,3 +9,4 @@ def display_plt(list_name, x_label, y_label, title_name):
     plt.xlabel('{}'.format(x_label))
     plt.title('{}'.format(title_name))
     plt.show()
+    pass
