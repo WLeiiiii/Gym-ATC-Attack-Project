@@ -23,9 +23,13 @@ class SimpleEnv(gym.Env):
         self.epochs = -1
         self.goal_num_up = 0
         self.collision_num_up = 0
+        self.collision_num = 0
         self.wall_num_up = 0
         self.max_step_up = 0
+        self.max_steps_num = 0
         self.initial_point = ()
+        self.steps_num = []
+        self.steps_num_mean = []
         self.np_random = None
         self.load_config()
         self.state = None
@@ -103,6 +107,9 @@ class SimpleEnv(gym.Env):
 
             self.intruder_list.append(intruder)
 
+        if not self.collision_num:
+            self.steps_num.append(self.max_steps_num)
+            self.steps_num_mean.append(int(np.mean(self.steps_num)))
         self.no_conflict = 0
         self.conflict_num = 0
         self.collision_num = 0
@@ -198,7 +205,7 @@ class SimpleEnv(gym.Env):
 
         if conflict:
             self.conflict_num += 1
-            return Config.conflict_penalty, False, 'c'  # conflict
+            return Config.conflict_penalty*2, False, 'c'  # conflict
 
         # if ownship out of map
         # if not self.position_range.contains(self.drone.position):
@@ -212,9 +219,9 @@ class SimpleEnv(gym.Env):
             return Config.goal_reward, True, 'g'  # goal
 
         if Config.sparse_reward:
-            return Config.step_penalty, False, ''
+            return Config.step_penalty*2, False, ''
         else:
-            return -dist(self.drone, self.goal) / 2400, False, ''
+            return -dist(self.drone, self.goal) / 1200, False, ''
             # return -1000, False, ''
 
     def render(self, mode="human"):
@@ -289,9 +296,18 @@ class SimpleEnv(gym.Env):
                                        x=15, y=710, anchor_x='left', anchor_y='bottom',
                                        color=(255, 80, 20, 255))
         label_step.draw()
+
+        text_steps_ep = "Steps：{}(mean: {})".format(self.max_steps_num, self.steps_num_mean[-1])
+        label_steps_ep = pyglet.text.Label(text_steps_ep, font_name="Times New Roman", font_size=20,
+                                           stretch=True,
+                                           x=15, y=680, anchor_x='left', anchor_y='bottom',
+                                           color=(255, 80, 20, 255))
+        label_steps_ep.draw()
+
         self.viewer.onetime_geoms.append(DrawText(label_goal))
         self.viewer.onetime_geoms.append(DrawText(label_collision))
         self.viewer.onetime_geoms.append(DrawText(label_step))
+        self.viewer.onetime_geoms.append(DrawText(label_steps_ep))
 
         return self.viewer.render(return_rgb_array=True)
 
@@ -384,7 +400,7 @@ class SimpleEnv(gym.Env):
         return min_dist
 
     def terminal_info(self):
-        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step]
+        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step, self.max_steps_num]
 
     def init(self):
         self.__init__()

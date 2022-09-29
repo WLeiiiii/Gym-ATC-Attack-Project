@@ -24,12 +24,16 @@ class SimpleEnv(gym.Env):
         self.goal_num_up = 0
         self.collision_num_up = 0
         self.wall_num_up = 0
+        self.collision_num = 0
         self.max_step_up = 0
+        self.max_steps_num = 0
         self.initial_point = ()
         self.np_random = None
         self.load_config()
         self.state = None
         self.viewer = None
+        self.steps_num = []
+        self.steps_num_mean = []
         self.lines = [[(50, 250), (750, 390)],
                       [(340, 750), (200, 50)],
                       [(750, 300), (50, 590)],
@@ -103,6 +107,9 @@ class SimpleEnv(gym.Env):
 
             self.intruder_list.append(intruder)
 
+        if not self.collision_num:
+            self.steps_num.append(self.max_steps_num)
+            self.steps_num_mean.append(int(np.mean(self.steps_num)))
         self.no_conflict = 0
         self.conflict_num = 0
         self.collision_num = 0
@@ -289,9 +296,18 @@ class SimpleEnv(gym.Env):
                                        x=15, y=710, anchor_x='left', anchor_y='bottom',
                                        color=(255, 80, 20, 255))
         label_step.draw()
+
+        text_steps_ep = "Steps：{}(mean: {})".format(self.max_steps_num, self.steps_num_mean[-1])
+        label_steps_ep = pyglet.text.Label(text_steps_ep, font_name="Times New Roman", font_size=20,
+                                           stretch=True,
+                                           x=15, y=680, anchor_x='left', anchor_y='bottom',
+                                           color=(255, 80, 20, 255))
+        label_steps_ep.draw()
+
         self.viewer.onetime_geoms.append(DrawText(label_goal))
         self.viewer.onetime_geoms.append(DrawText(label_collision))
         self.viewer.onetime_geoms.append(DrawText(label_step))
+        self.viewer.onetime_geoms.append(DrawText(label_steps_ep))
 
         return self.viewer.render(return_rgb_array=True)
 
@@ -384,7 +400,7 @@ class SimpleEnv(gym.Env):
         return min_dist
 
     def terminal_info(self):
-        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step]
+        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step, self.max_steps_num]
 
 
 class Goal:

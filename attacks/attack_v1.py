@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from torch import autograd, nn
+from torch.distributions.beta import Beta
 import torch.nn.functional as F
 
 from models.dqn_model import QNetwork, ResBlock
@@ -18,7 +19,8 @@ Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if 
 
 
 class Attack:
-    def __init__(self, env, device, agent, load_path, epsilon=0, atk=False, episodes=300):
+    def __init__(self, env, device, agent, load_path, epsilon=0, atk=False, episodes=300, method="F"):
+        self.method = method
         self.env = env
         self.epsilon = epsilon
         self.device = device
@@ -39,6 +41,8 @@ class Attack:
         self.episodes = episodes
         self.reward_window = deque(maxlen=episodes)
         self.attack_frq_window = deque(maxlen=episodes)
+        self.steps_num_mean = []
+        self.steps_num_window = deque(maxlen=episodes)
 
     def run(self):
         for _ in range(self.episodes):
@@ -69,6 +73,9 @@ class Attack:
             self.conflict_num += results[1]
             self.collision_num += results[2]
             self.max_step_num += results[3]
+            if not results[2]:
+                self.steps_num_window.append(results[4])
+                self.steps_num_mean.append(np.mean(self.steps_num_window))
             conflict_frq = self.conflict_num / self.total_timestep
             self.reward_window.append(total_reward)
             self.total_rewards.append(np.mean(self.reward_window))
@@ -81,6 +88,7 @@ class Attack:
         print("goal_num: {}/{}".format(self.goal_num, self.episodes))
         print("collision_num: {}/{}".format(self.collision_num, self.episodes))
         print("max_step_num: {}/{}".format(self.max_step_num, self.episodes))
+        print("steps_mean: {}".format(int(self.steps_num_mean[-1])))
         print("conflict_frq: {:4f}".format(conflict_frq))
         print("mean_score: {:4f}".format(self.total_rewards[-1]))
         print("attack_frq: {:4f}".format(self.attack_frq[-1]))
@@ -93,9 +101,12 @@ class Attack:
             action = self.agent.act(obs_tensor)
             action = torch.from_numpy(action).to(self.device)
             logits = self.agent.forward(obs)
-            softmax = nn.Softmax(dim=-1)
-            prob = softmax(logits)
-            obs = self.fgsm(obs, action, prob)
+            logsoftmax = nn.LogSoftmax(dim=-1)
+            prob = logsoftmax(logits)
+            if self.method == "F":
+                obs = self.fgsm(obs, action, prob)
+            else:
+                obs = self.gradient_based_attack(obs, action, prob)
             if self.epsilon != 0:
                 self.attack_counts += 1
         return obs.data
@@ -108,7 +119,11 @@ class Attack:
         pass
 
     def fgsm(self, obs, action, prob):
+        print("prob: {}".format(prob))
+        print("action: {}".format(action))
+        print(prob[-1][action.data.cpu().numpy()[-1]])
         loss = F.nll_loss(prob, action)
+        print(loss)
         self.agent.zero_grad()
         loss.backward()
         eta = self.epsilon * obs.grad.data.sign()
@@ -116,6 +131,25 @@ class Attack:
         obs.data = torch.clamp(obs.data, 0, 1)
         return obs
         pass
+
+    def gradient_based_attack(self, obs, action, prob):
+        obs_adv = obs
+        action_index = action.data.cpu().numpy()[-1]
+        q_star = prob[-1][action_index]
+        loss = F.nll_loss(prob, action)
+        self.agent.zero_grad()
+        loss.backward()
+        for _ in range(9):
+            eta = Beta(1, 1).sample().data * obs.grad.data.sign()
+            obs_i = Variable(obs.data - eta, requires_grad=True)
+            obs_i.data = torch.clamp(obs_i.data, 0, 1)
+            action_adv = self.agent.act(obs_i)
+            action_adv_tensor = torch.from_numpy(action_adv).to(self.device)
+            q_adv = prob[-1][action_adv_tensor.data.cpu().numpy()[-1]]
+            if q_adv < q_star:
+                q_star = q_adv
+                obs_adv = obs_i
+        return obs_adv
 
 
 pass

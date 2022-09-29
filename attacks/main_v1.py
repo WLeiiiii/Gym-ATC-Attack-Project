@@ -14,36 +14,38 @@ from models.dqn_model import QNetwork, ResBlock
 def without_attack(env, device, agent, load_path, epsilon, episodes):
     without_atk = Attack(env, device, agent, load_path, epsilon, atk=False, episodes=episodes)
     without_atk.run()
-    without_atk.plot(atk_name="Without Attack")
+    without_atk.plot(atk_name="Without Attack_convDQN")
 
 
-def uniform_attack(env, device, agent, load_path, epsilon, episodes, frq):
-    uni_atk = UniAttack(env, device, agent, load_path, epsilon, atk=True, episodes=episodes, frq=frq)
+def uniform_attack(env, device, agent, load_path, epsilon, episodes, frq, method):
+    uni_atk = UniAttack(env, device, agent, load_path, epsilon, atk=True, episodes=episodes, frq=frq, method=method)
     uni_atk.run()
-    uni_atk.plot(atk_name="UniAttack with epsilon:{} & frq:{}".format(epsilon, frq))
+    uni_atk.plot(atk_name="UniAttack with epsilon:{} & frq:{}_convDQN_{}".format(epsilon, frq, method))
     pass
 
 
-def strategical_time_attack(env, device, agent, load_path, epsilon, episodes, beta):
-    st_atk = STAttack(env, device, agent, load_path, epsilon, atk=True, episodes=episodes, beta=beta)
+def strategical_time_attack(env, device, agent, load_path, epsilon, episodes, beta, method):
+    st_atk = STAttack(env, device, agent, load_path, epsilon, atk=True, episodes=episodes, beta=beta, method=method)
     st_atk.run()
-    st_atk.plot(atk_name="STAttack with epsilon:{} & beta:{}".format(epsilon, beta))
+    st_atk.plot(atk_name="STAttack with epsilon:{} & beta:{}_convDQN_{}".format(epsilon, beta, method))
     pass
 
 
-def physical_attack(env, device, agent, load_path, epsilon, episodes, alpha):
-    phys_atk = PhysAttack(env, device, agent, load_path, epsilon, atk=True, episodes=episodes, alpha=alpha)
+def physical_attack(env, device, agent, load_path, epsilon, episodes, alpha, method):
+    phys_atk = PhysAttack(env, device, agent, load_path, epsilon, atk=True, episodes=episodes, alpha=alpha,
+                          method=method)
     phys_atk.run()
-    phys_atk.plot(atk_name="PhysAttack with epsilon:{} & alpha:{}".format(epsilon, alpha))
+    phys_atk.plot(atk_name="PhysAttack with epsilon:{} & alpha:{}_convDQN_{}".format(epsilon, alpha, method))
     pass
 
 
 def main():
-    episodes = 500
+    episodes = 1000
     epsilon = 0.03
     beta = 0.025
     alpha = 100
-    frq = 1
+    frq = 0.5
+    method = "G"  # "F":fgsm, "G":gradient based attack
 
     seed = 9
     random.seed(seed)
@@ -54,9 +56,9 @@ def main():
     load_path = "../save_model/dqn_random_goal_model_06.pth"
 
     without_attack(env, device, agent, load_path, epsilon, episodes)
-    # uniform_attack(env, device, agent, load_path, epsilon, episodes, frq)
-    # strategical_time_attack(env, device, agent, load_path, epsilon, episodes, beta)
-    # physical_attack(env, device, agent, load_path, epsilon, episodes, alpha)
+    # uniform_attack(env, device, agent, load_path, epsilon, episodes, frq, method)
+    # strategical_time_attack(env, device, agent, load_path, epsilon, episodes, beta, method)
+    # physical_attack(env, device, agent, load_path, epsilon, episodes, alpha, method)
 
 
 if __name__ == "__main__":

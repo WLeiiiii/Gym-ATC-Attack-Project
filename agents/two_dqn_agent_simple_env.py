@@ -47,7 +47,7 @@ class Agent2:
 
     def act(self, state, epsilon=0.):
         '''Choose an action given state using epsilon-greedy'''
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        # state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         self.local_j.eval()  # change model to evaluation mode
         self.local_p.eval()
         # with torch.no_grad():  # turn off gradient descent since evaluating
@@ -62,7 +62,7 @@ class Agent2:
                 index_max = np.argsort(q_value.cpu().data.numpy())[-1][-i]
                 # if q_value_p.cpu().data.numpy()[0][index_max] < np.mean(q_value_p.cpu().data.numpy()):
                 if q_value_p.cpu().data.numpy()[0][index_max] < np.median(q_value_p.cpu().data.numpy()):
-                    print(np.mean(q_value_p.cpu().data.numpy()), np.median(q_value_p.cpu().data.numpy()))
+                    # print(np.mean(q_value_p.cpu().data.numpy()), np.median(q_value_p.cpu().data.numpy()))
                     continue
                 else:
                     return index_max
