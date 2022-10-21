@@ -17,7 +17,7 @@ class UniAttack(Attack):
             logits = self.agent.forward(obs)
             logsoftmax = nn.LogSoftmax(dim=-1)
             prob = logsoftmax(logits)
-            if self.attack_frequency <= self.frq:
+            if torch.rand(1) <= self.frq:
                 if self.method == "F":
                     obs = self.fgsm(obs, action, prob)
                 else:

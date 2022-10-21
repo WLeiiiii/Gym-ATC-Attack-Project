@@ -21,4 +21,3 @@ def display_frames_as_gif(frames, atk):
     else:
         anim.save('../logs/results/gifs/' + 'result_no_attack_' + current_time + '.gif', writer='pillow', fps=30)
         print("gif已保存！")
-    pass

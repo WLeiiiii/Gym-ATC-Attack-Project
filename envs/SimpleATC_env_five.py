@@ -5,7 +5,6 @@ import pyglet
 import numpy as np
 import gym
 from gym import spaces
-from gym.utils import seeding
 
 from .config import Config
 
@@ -20,6 +19,7 @@ class DrawText:
 
 class SimpleEnv(gym.Env):
     def __init__(self):
+        self.goal_num = 0
         self.epochs = -1
         self.goal_num_up = 0
         self.collision_num_up = 0
@@ -100,9 +100,11 @@ class SimpleEnv(gym.Env):
 
             self.intruder_list.append(intruder)
 
-        if not self.collision_num:
+        if self.goal_num:
             self.steps_num.append(self.max_steps_num)
             self.steps_num_mean.append(int(np.mean(self.steps_num)))
+        else:
+            self.steps_num_mean.append(0)
         self.no_conflict = 0
         self.conflict_num = 0
         self.collision_num = 0
@@ -196,7 +198,7 @@ class SimpleEnv(gym.Env):
 
         if conflict:
             self.conflict_num += 1
-            return Config.conflict_penalty*2, False, 'c'  # conflict
+            return Config.conflict_penalty, False, 'c'  # conflict
 
         # if ownship out of map
         # if not self.position_range.contains(self.drone.position):
@@ -210,10 +212,9 @@ class SimpleEnv(gym.Env):
             return Config.goal_reward, True, 'g'  # goal
 
         if Config.sparse_reward:
-            return Config.step_penalty*2, False, ''
+            return Config.step_penalty, False, ''
         else:
-            return -dist(self.drone, self.goal) / 1200, False, ''
-            # return -1000, False, ''
+            return -dist(self.drone, self.goal) / 2400 + Config.step_penalty, False, ''
 
     def render(self, mode="human"):
         from gym.envs.classic_control import rendering
@@ -238,6 +239,7 @@ class SimpleEnv(gym.Env):
         ownship_img = rendering.Image(os.path.join(__location__, 'images/aircraft.png'), 32, 32)
         jtransform = rendering.Transform(rotation=self.drone.heading - math.pi / 2, translation=self.drone.position)
         ownship_img.add_attr(jtransform)
+        # ownship_img.set_color(0,255,0)
         ownship_img.set_color(255, 241, 4)  # set it to yellow
         self.viewer.onetime_geoms.append(ownship_img)
 
@@ -245,7 +247,9 @@ class SimpleEnv(gym.Env):
         for aircraft in self.intruder_list:
             intruder_img = rendering.Image(os.path.join(__location__, 'images/intruder.png'), 32, 32)
             jtransform = rendering.Transform(rotation=aircraft.heading - math.pi / 2, translation=aircraft.position)
+            # jtransform = rendering.Transform(rotation=aircraft.heading, translation=aircraft.position)
             intruder_img.add_attr(jtransform)
+            # intruder_img.set_color(0, 0, 255)
             intruder_img.set_color(237, 26, 32)  # red color
             self.viewer.onetime_geoms.append(intruder_img)
 
@@ -277,7 +281,13 @@ class SimpleEnv(gym.Env):
                                        color=(255, 80, 20, 255))
         label_step.draw()
 
-        text_steps_ep = "Steps：{}(mean: {})".format(self.max_steps_num, self.steps_num_mean[-1])
+        text_steps = self.steps_num_mean[-1]
+        if text_steps:
+            self.text_steps_copy = text_steps
+        else:
+            if len(self.steps_num_mean) <= 2:
+                self.text_steps_copy = self.steps_num_mean[-1]
+        text_steps_ep = "Steps：{}(Average: {})".format(self.max_steps_num, self.text_steps_copy)
         label_steps_ep = pyglet.text.Label(text_steps_ep, font_name="Times New Roman", font_size=20,
                                            stretch=True,
                                            x=15, y=680, anchor_x='left', anchor_y='bottom',
@@ -311,9 +321,7 @@ class SimpleEnv(gym.Env):
         pos_list = [(50, 50), (self.window_width - 50, 50), (self.window_width - 50, self.window_height - 50),
                     (50, self.window_height - 50)]
         rand_index = np.random.randint(1, 4)
-        # rand_index = 1
         position = pos_list[rand_index]
-        # speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
         speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
         # speed = (self.min_speed + self.max_speed) / 2
         heading = math.pi / 4 + (math.pi / 2) * rand_index
@@ -328,7 +336,6 @@ class SimpleEnv(gym.Env):
             a = x2[0] - x1[0]
             b = x2[1] - x1[1]
             c = math.sqrt(a * a + b * b)
-            # print((a, b, c))
             if a == 0:
                 head = math.pi / 2
             elif a > 0 and b > 0:
@@ -361,10 +368,6 @@ class SimpleEnv(gym.Env):
     def random_heading(self):
         return np.random.uniform(low=0, high=2 * math.pi)
 
-    # def near_dist(self):
-    #     return dist(self.drone, self.near_intruder())
-    #     pass
-
     def goal_dist(self):
         return dist(self.drone, self.goal)
 
@@ -377,7 +380,7 @@ class SimpleEnv(gym.Env):
         return min_dist
 
     def terminal_info(self):
-        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step, self.max_steps_num]
+        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step, self.text_steps_copy]
 
     def init(self):
         self.__init__()

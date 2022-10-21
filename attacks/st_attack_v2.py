@@ -18,10 +18,12 @@ class STAttack(Attack):
             agent = self.agent_p
         else:
             agent = self.agent_j
-        agent.eval()
+        # agent.eval()
         if self.can_attack:
-            action = agent.act(obs_tensor)
-            action = torch.from_numpy(action).to(self.device)
+            action = self.act(obs_tensor)
+            # print(action)
+            # action = torch.from_numpy(action).to(self.device)
+            agent.eval()
             logits = agent.forward(obs)
             softmax = nn.Softmax(dim=-1)
             logsoftmax = nn.LogSoftmax(dim=-1)

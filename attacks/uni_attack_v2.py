@@ -17,14 +17,13 @@ class UniAttack(Attack):
             agent = self.agent_p
         else:
             agent = self.agent_j
-        agent.eval()
         if self.can_attack:
-            action = agent.act(obs_tensor)
-            action = torch.from_numpy(action).to(self.device)
+            action = self.act(obs_tensor)
+            agent.eval()
             logits = agent.forward(obs)
             logsoftmax = nn.LogSoftmax(dim=-1)
             prob = logsoftmax(logits)
-            if self.attack_frequency <= self.frq:
+            if torch.rand(1) <= self.frq:
                 if self.method == "F":
                     obs = self.fgsm(obs, action, prob, agent)
                 else:

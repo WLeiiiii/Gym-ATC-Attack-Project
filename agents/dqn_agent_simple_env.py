@@ -42,7 +42,7 @@ class Agent:
     def act(self, state, epsilon=0.):
         '''Choose an action given state using epsilon-greedy'''
         # state = state.reshape(1, -1)
-        # state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         # state = state.float().unsqueeze(0).to(device)
         self.local.eval()  # change model to evaluation mode
         # with torch.no_grad():  # turn off gradient descent since evaluating

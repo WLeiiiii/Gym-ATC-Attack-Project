@@ -215,14 +215,6 @@ class SimpleImgEnv(gym.Env):
             intruder_img.set_color(237, 26, 32)  # red color
             self.viewer.onetime_geoms.append(intruder_img)
 
-        # circle = rendering.make_circle(10, filled=False)
-        # # 添加一个平移操作
-        # circle_transform = rendering.Transform(translation=self.initial_point)
-        # # 让圆添加平移这个属性,
-        # circle.add_attr(circle_transform)
-        # circle.set_color(0, 100, 200)
-        # self.viewer.onetime_geoms.append(circle)
-
         # draw goal
         goal_img = rendering.Image(os.path.join(__location__, 'images/goal.png'), 32, 32)
         jtransform = rendering.Transform(rotation=0, translation=self.goal.position)
@@ -272,12 +264,6 @@ class SimpleImgEnv(gym.Env):
             low=np.array([0, 0]),
             high=np.array([self.window_width, self.window_height])
         )
-
-    # def random_goal_pos(self):
-    #     return np.random.uniform(
-    #         low=np.array([100, 100]),
-    #         high=np.array([self.window_width - 100, self.window_height - 100])
-    #     )
 
     def random_speed(self):
         return np.random.uniform(low=self.min_speed, high=self.max_speed)

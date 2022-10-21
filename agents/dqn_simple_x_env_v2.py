@@ -6,8 +6,8 @@ from collections import deque
 import numpy as np
 import torch
 
-from agents.two_dqn_agent_simple_env import Agent2
-from envs.SimpleATC_env_five_v2 import SimpleEnv
+from agents.dqn_agent_simple_env_v2 import Agent2
+from envs.SimpleATC_env_flexible_v2 import SimpleEnv
 from utils.display_plt import display_plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -152,8 +152,8 @@ def main():
     parser.add_argument('--train', type=bool, default=True)
     parser.add_argument('--seed', type=int, default=9)
     # parser.add_argument('--load_path', type=str, default="save_model/dqn_model_01.pth")
-    parser.add_argument('--save_path_j', type=str, default='../save_model/dqn_random_goal_model_10_j.pth')
-    parser.add_argument('--save_path_p', type=str, default='../save_model/dqn_random_goal_model_10_p.pth')
+    parser.add_argument('--save_path_j', type=str, default='../save_model_new/2dqn_Xlines_model_01_j.pth')
+    parser.add_argument('--save_path_p', type=str, default='../save_model_new/2dqn_Xlines_model_01_p.pth')
     args = parser.parse_args()
 
     env = SimpleEnv()

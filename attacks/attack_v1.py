@@ -2,12 +2,13 @@ import os
 from collections import deque
 
 import numpy as np
+import pandas as pd
 import torch
-from matplotlib import pyplot as plt
 from torch import autograd, nn
 from torch.distributions.beta import Beta
 import torch.nn.functional as F
 
+from models.dqn_model import QNetwork, ResBlock
 from utils.display_plt import display_plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -72,9 +73,7 @@ class Attack:
             self.conflict_num += results[1]
             self.collision_num += results[2]
             self.max_step_num += results[3]
-            if not results[2]:
-                self.steps_num_window.append(results[4])
-                self.steps_num_mean.append(np.mean(self.steps_num_window))
+            self.average_steps = results[4]
             conflict_frq = self.conflict_num / self.total_timestep
             self.reward_window.append(total_reward)
             self.total_rewards.append(np.mean(self.reward_window))
@@ -87,7 +86,7 @@ class Attack:
         print("goal_num: {}/{}".format(self.goal_num, self.episodes))
         print("collision_num: {}/{}".format(self.collision_num, self.episodes))
         print("max_step_num: {}/{}".format(self.max_step_num, self.episodes))
-        print("steps_mean: {}".format(int(self.steps_num_mean[-1])))
+        print("steps_mean: {}".format(self.average_steps))
         print("conflict_frq: {:4f}".format(conflict_frq))
         print("mean_score: {:4f}".format(self.total_rewards[-1]))
         print("attack_frq: {:4f}".format(self.attack_frq[-1]))
@@ -117,6 +116,20 @@ class Attack:
             display_plt(self.attack_frq, 'Episode', 'Frequency', atk_name)
         pass
 
+    def save_data(self, atk_name="Without_attack"):
+        header = ["score"]
+        df = pd.DataFrame(columns=header, data=self.total_rewards)
+        df.to_csv("../save_data/" + atk_name + ".csv")
+
+        result = [[self.goal_num / self.episodes, self.collision_num / self.episodes, self.max_step_num / self.episodes,
+                   self.average_steps, self.conflict_num / self.total_timestep, self.total_rewards[-1],
+                   self.attack_frq[-1]]]
+        headers = ["Success rate", "Collision rate", "Max Steps Reached rate", "Mean Steps", "Conflict rate",
+                   "Mean score", "Attack Frequency"]
+        df = pd.DataFrame(columns=headers, data=result)
+        df.to_csv("../save_data/" + atk_name + "_results.csv")
+        pass
+
     def fgsm(self, obs, action, prob):
         loss = F.nll_loss(prob, action)
         self.agent.zero_grad()
@@ -131,7 +144,7 @@ class Attack:
         obs_adv = obs
         action_index = action.data.cpu().numpy()[-1]
         q_star = prob[-1][action_index]
-        loss = F.nll_loss(prob, action)
+        loss = -1 * min(prob[-1])
         self.agent.zero_grad()
         loss.backward()
         for _ in range(9):

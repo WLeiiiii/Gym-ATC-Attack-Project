@@ -81,13 +81,6 @@ class SimpleEnv(gym.Env):
             speed=reset_d[1],
             heading=reset_d[2]
         )
-        # self.drone = Ownship(
-        #     position=self.random_pos(),
-        #     speed=self.random_speed(),
-        #     heading=self.random_heading()
-        # )
-
-        # reset_i = self.reset_intruder()
 
         self.intruder_list = []
         for i in range(self.intruder_size):
@@ -141,7 +134,6 @@ class SimpleEnv(gym.Env):
         a[1] = action % 3
         action = a
         # assert self.action_space.contains(action), 'given action is in incorrect shape'
-        # print("action: ",action)
         # next state of ownship
         self.drone.step(action)
 
@@ -160,7 +152,6 @@ class SimpleEnv(gym.Env):
             # if this intruder out of map
             if not self.position_range.contains(intruder.position):
                 reset_i = self.reset_intruder()
-                # rand_index = random.randrange(self.intruder_size)
                 intruder_i = Aircraft(
                     position=reset_i[idx][0],
                     speed=reset_i[idx][1],
@@ -206,7 +197,6 @@ class SimpleEnv(gym.Env):
             return Config.step_penalty, False, ''
         else:
             return -dist(self.drone, self.goal) / 2400, False, ''
-            # return -1000, False, ''
 
     def render(self, mode="human"):
         from gym.envs.classic_control import rendering
@@ -221,7 +211,7 @@ class SimpleEnv(gym.Env):
         import os
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-        # draw 10 airlines
+        # draw airlines
         for [x1, x2] in self.lines:
             line = rendering.Line(x1, x2)
             line.set_color(0, 0, 255)
@@ -244,14 +234,6 @@ class SimpleEnv(gym.Env):
             # intruder_img.set_color(0, 0, 255)
             intruder_img.set_color(237, 26, 32)  # red color
             self.viewer.onetime_geoms.append(intruder_img)
-
-        # circle = rendering.make_circle(10, filled=False)
-        # # 添加一个平移操作
-        # circle_transform = rendering.Transform(translation=self.initial_point)
-        # # 让圆添加平移这个属性,
-        # circle.add_attr(circle_transform)
-        # circle.set_color(0, 100, 200)
-        # self.viewer.onetime_geoms.append(circle)
 
         # draw goal
         goal_img = rendering.Image(os.path.join(__location__, 'images/goal.png'), 32, 32)
@@ -320,7 +302,6 @@ class SimpleEnv(gym.Env):
             a = x2[0] - x1[0]
             b = x2[1] - x1[1]
             c = math.sqrt(a * a + b * b)
-            # print((a, b, c))
             if a == 0:
                 head = math.pi / 2
             elif a > 0 and b > 0:
@@ -353,17 +334,12 @@ class SimpleEnv(gym.Env):
     def random_heading(self):
         return np.random.uniform(low=0, high=2 * math.pi)
 
-    # def near_dist(self):
-    #     return dist(self.drone, self.near_intruder())
-    #     pass
-
     def goal_dist(self):
         return dist(self.drone, self.goal)
 
     def near_intruder_dist(self):
         min_dist = dist(self.drone, self.intruder_list[0])
         for aircraft in self.intruder_list:
-            # min_dist = dist(self.drone, self.intruder_list[0])
             dist_i = dist(self.drone, aircraft)
             if dist_i < min_dist:
                 min_dist = dist_i

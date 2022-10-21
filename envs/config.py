@@ -6,15 +6,15 @@ class Config:
     window_width = 800
     window_height = 800
     diagonal = 800  # this one is used to normalize dist_to_intruder
-    intruder_size = 5
+    intruder_size = 10
     EPISODES = 1000
     G = 9.8
     tick = 30
     scale = 30
 
     # distance param
-    minimum_separation = 1200 / scale
-    NMAC_dist = 600 / scale
+    minimum_separation = 555 / scale
+    NMAC_dist = 150 / scale
     horizon_dist = 4000 / scale
     initial_min_dist = 3000 / scale
     goal_radius = 600 / scale
@@ -52,4 +52,4 @@ class Config:
     # conflict_coeff = 0.001
 
     # n nearest intruder
-    n = 4
+    n = 3

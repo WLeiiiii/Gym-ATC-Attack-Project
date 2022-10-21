@@ -8,7 +8,7 @@ import torch
 from matplotlib import pyplot as plt, animation
 
 from agents.dqn_agent_simple_env import Agent
-from envs.SimpleATC_env_five import SimpleEnv
+from envs.SimpleATC_env_flexible import SimpleEnv
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -146,10 +146,10 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--episodes', '-e', type=int, default=19999)
-    parser.add_argument('--train', type=bool, default=False)
+    parser.add_argument('--train', type=bool, default=True)
     parser.add_argument('--seed', type=int, default=9)
     # parser.add_argument('--load_path', type=str, default="save_model/dqn_model_01.pth")
-    parser.add_argument('--save_path', type=str, default='../save_model/dqn_random_goal_model_07.pth')
+    parser.add_argument('--save_path', type=str, default='../save_model/dqn_Xlines_model_01.pth')
     args = parser.parse_args()
 
     env = SimpleEnv()
@@ -159,7 +159,7 @@ def main():
     # env.seed(args.seed)
     random.seed(args.seed)
     np.random.seed(args.seed)
-    # torch.manual_seed(args.seed)
+    torch.manual_seed(args.seed)
     # torch.cuda.manual_seed(args.seed)
     # torch.backends.cudnn.deterministic = True
 

@@ -43,10 +43,16 @@ class SimpleEnv(gym.Env):
                       [(350, 50), (50, 450)],
                       [(50, 500), (750, 700)],
                       [(750, 500), (450, 50)],
-                      [(750, 600), (50, 700)]
+                      [(750, 600), (50, 700)],
+                      [(600, 750), (300, 50)],
+                      [(50, 200), (750, 200)],
+                      [(750, 450), (50, 400)],
+                      [(50, 650), (750, 550)],
+                      [(700, 750), (550, 50)]
                       ]
+        self.lines_draw = self.lines[:self.intruder_size]
 
-        state_dimension = self.intruder_size * 4 + 8
+        state_dimension = self.intruder_nearest * 4 + 8
         self.observation_space = spaces.Box(low=-1000, high=1000, shape=(state_dimension,), dtype=np.float32)
         self.action_space = spaces.Discrete(9)
         self.position_range = spaces.Box(
@@ -64,6 +70,7 @@ class SimpleEnv(gym.Env):
     def load_config(self):
         self.window_width = Config.window_width
         self.window_height = Config.window_height
+        self.intruder_nearest = Config.n
         self.intruder_size = Config.intruder_size
         self.EPISODES = Config.EPISODES
         self.G = Config.G
@@ -81,7 +88,6 @@ class SimpleEnv(gym.Env):
         self.max_steps = 1000
         self.epochs += 1
         self.goal = Goal(position=self.random_pos())
-        # self.goal = Goal(position=(self.window_width / 2, self.window_height / 2))
 
         reset_d = self.reset_drone()
         self.drone = Ownship(
@@ -101,6 +107,17 @@ class SimpleEnv(gym.Env):
 
             self.intruder_list.append(intruder)
 
+        distance = []
+        for aircraft in self.intruder_list:
+            distance.append(dist(self.drone, aircraft))
+
+        self.nearest_intruder_list = []
+        for i in range(self.intruder_nearest):
+            index = np.argsort(distance)[i]
+            intruder = self.intruder_list[index]
+            self.nearest_intruder_list.append(intruder)
+
+
         if self.goal_num:
             self.steps_num.append(self.max_steps_num)
             self.steps_num_mean.append(int(np.mean(self.steps_num)))
@@ -117,12 +134,22 @@ class SimpleEnv(gym.Env):
         return self._get_obs()
 
     def _get_obs(self):
+        distance = []
+        for aircraft in self.intruder_list:
+            distance.append(dist(self.drone, aircraft))
+
+        self.nearest_intruder_list = []
+        for i in range(self.intruder_nearest):
+            index = np.argsort(distance)[i]
+            intruder = self.intruder_list[index]
+            self.nearest_intruder_list.append(intruder)
+
         def normalize_velocity(velocity):
             translation = velocity + self.max_speed
             return translation / (self.max_speed * 2)
 
         s = []
-        for aircraft in self.intruder_list:
+        for aircraft in self.nearest_intruder_list:
             # (x, y, vx, vy)
             s.append(aircraft.position[0] / Config.window_width)
             s.append(aircraft.position[1] / Config.window_height)
@@ -144,6 +171,7 @@ class SimpleEnv(gym.Env):
         return np.array(s)
 
     def step(self, action):
+
         self.max_steps_num += 1
         if self.max_steps_num == self.max_steps:
             self.max_step += 1
@@ -230,8 +258,8 @@ class SimpleEnv(gym.Env):
         import os
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-        # draw 10 airlines
-        for [x1, x2] in self.lines:
+        # draw airlines
+        for [x1, x2] in self.lines_draw:
             line = rendering.Line(x1, x2)
             line.set_color(0, 0, 255)
             self.viewer.onetime_geoms.append(line)
@@ -240,15 +268,21 @@ class SimpleEnv(gym.Env):
         ownship_img = rendering.Image(os.path.join(__location__, 'images/aircraft.png'), 32, 32)
         jtransform = rendering.Transform(rotation=self.drone.heading - math.pi / 2, translation=self.drone.position)
         ownship_img.add_attr(jtransform)
-        # ownship_img.set_color(0,255,0)
         ownship_img.set_color(255, 241, 4)  # set it to yellow
         self.viewer.onetime_geoms.append(ownship_img)
 
         # draw intruders
         for aircraft in self.intruder_list:
+            intruder_img = rendering.Image(os.path.join(__location__, 'images/test.png'), 32, 32)
+            jtransform = rendering.Transform(rotation=aircraft.heading - math.pi / 2, translation=aircraft.position)
+            intruder_img.add_attr(jtransform)
+            intruder_img.set_color(0, 0, 100)
+            # intruder_img.set_color(255, 241, 4)  # red color
+            self.viewer.onetime_geoms.append(intruder_img)
+
+        for aircraft in self.nearest_intruder_list:
             intruder_img = rendering.Image(os.path.join(__location__, 'images/intruder.png'), 32, 32)
             jtransform = rendering.Transform(rotation=aircraft.heading - math.pi / 2, translation=aircraft.position)
-            # jtransform = rendering.Transform(rotation=aircraft.heading, translation=aircraft.position)
             intruder_img.add_attr(jtransform)
             # intruder_img.set_color(0, 0, 255)
             intruder_img.set_color(237, 26, 32)  # red color
@@ -322,7 +356,6 @@ class SimpleEnv(gym.Env):
         pos_list = [(50, 50), (self.window_width - 50, 50), (self.window_width - 50, self.window_height - 50),
                     (50, self.window_height - 50)]
         rand_index = np.random.randint(1, 4)
-        # rand_index = 1
         position = pos_list[rand_index]
         speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
         # speed = (self.min_speed + self.max_speed) / 2
@@ -376,6 +409,7 @@ class SimpleEnv(gym.Env):
     def near_intruder_dist(self):
         min_dist = dist(self.drone, self.intruder_list[0])
         for aircraft in self.intruder_list:
+            # min_dist = dist(self.drone, self.intruder_list[0])
             dist_i = dist(self.drone, aircraft)
             if dist_i < min_dist:
                 min_dist = dist_i
