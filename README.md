@@ -2,5 +2,10 @@
 
 
 ## Demo
-![image](https://github.com/WLeiiiii/Gym-ATC-Attack-Project/blob/main/gifs/safeDQN-X10.gif)
+| ![image](gifs/safeDQN-X10.gif) | ![image](gifs/safeDQN-X10.gif) | ![image](gifs/safeDQN-X10.gif) | ![image](gifs/safeDQN-X10.gif) | 
+|:--:| :--:| :--:| :--:| 
+| ** **, *  * <br>  **  ** <br>  | ** **, *  * <br>  **  ** <br>  | ** **, * * <br>  ** ** | ** **, * * <br>  ** ** |
+| ![image](gifs/safeDQN-X10.gif) | ![image](gifs/safeDQN-X10.gif) | ![image](gifs/safeDQN-X10.gif) | ![image](gifs/safeDQN-X10.gif) | 
+| ** **, *  * <br>  **  ** <br>  | ** **, *  * <br>  **  ** <br>  | ** **, * * <br>  ** ** | ** **, * * <br>  ** ** |
+
 
