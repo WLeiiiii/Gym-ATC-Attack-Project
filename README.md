@@ -2,11 +2,11 @@
 
 
 ## Demo
-|                  |         Without Attack          |             Uniform Attack              |       Strategically-Timed Attack        |
-|:----------------:|:-------------------------------:|:---------------------------------------:|:---------------------------------------:|
-|    **DQN-10**    | ![image](gifs/safeDQN-X10.gif)  |     ![image](gifs/safeDQN-X10.gif)      |     ![image](gifs/safeDQN-X10.gif)      |
-|   **DQN-X10**    | ![image](gifs/safeDQN-X10.gif)  |     ![image](gifs/safeDQN-X10.gif)      |     ![image](gifs/safeDQN-X10.gif)      |
-|  **safeDQN-10**  | ![image](gifs/safeDQN-X10.gif)  |     ![image](gifs/safeDQN-X10.gif)      |     ![image](gifs/safeDQN-X10.gif)      | 
-| **safeDQN-X10**  | ![image](gifs/safeDQN-X10.gif)  | ![image](gifs/safeDQN-X10-UniAttck.gif) | ![image](gifs/safeDQN-X10-STAttack.gif) |
+|                  |         Without Attack          |              Uniform Attack              |       Strategically-Timed Attack        |
+|:----------------:|:-------------------------------:|:----------------------------------------:|:---------------------------------------:|
+|    **DQN-10**    | ![image](gifs/safeDQN-X10.gif)  |      ![image](gifs/safeDQN-X10.gif)      |     ![image](gifs/safeDQN-X10.gif)      |
+|   **DQN-X10**    | ![image](gifs/safeDQN-X10.gif)  |      ![image](gifs/safeDQN-X10.gif)      |     ![image](gifs/safeDQN-X10.gif)      |
+|  **safeDQN-10**  | ![image](gifs/safeDQN-X10.gif)  |      ![image](gifs/safeDQN-X10.gif)      |     ![image](gifs/safeDQN-X10.gif)      | 
+| **safeDQN-X10**  | ![image](gifs/safeDQN-X10.gif)  | ![image](gifs/safeDQN-X10-UniAttack.gif) | ![image](gifs/safeDQN-X10-STAttack.gif) |
 
 
