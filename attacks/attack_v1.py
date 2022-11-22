@@ -8,7 +8,6 @@ from torch import autograd, nn
 from torch.distributions.beta import Beta
 import torch.nn.functional as F
 
-from models.dqn_model import QNetwork, ResBlock
 from utils.display_plt import display_plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'

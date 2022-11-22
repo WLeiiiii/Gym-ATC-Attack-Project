@@ -6,7 +6,6 @@ current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
 def display_frames_as_gif(frames, atk):
-    # print(frames[0])
     patch = plt.imshow(frames[0])
     plt.axis('off')
 

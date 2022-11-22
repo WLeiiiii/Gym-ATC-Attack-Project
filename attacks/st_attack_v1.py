@@ -20,10 +20,10 @@ class STAttack(Attack):
             logsoftmax = nn.LogSoftmax(dim=-1)
             prob = logsoftmax(logits)
             prob_np = softmax(logits).cpu().detach().numpy()
-            prob_a = prob_np[0][0] + prob_np[0][1] + prob_np[0][2]
-            prob_b = prob_np[0][3] + prob_np[0][4] + prob_np[0][5]
-            prob_c = prob_np[0][6] + prob_np[0][7] + prob_np[0][8]
-            prob_heading = [prob_a, prob_b, prob_c]
+            prob_r = prob_np[0][0] + prob_np[0][1] + prob_np[0][2]
+            prob_k = prob_np[0][3] + prob_np[0][4] + prob_np[0][5]
+            prob_l = prob_np[0][6] + prob_np[0][7] + prob_np[0][8]
+            prob_heading = [prob_r, prob_k, prob_l]
             max_a = np.amax(prob_heading)
             min_a = np.amin(prob_heading)
             diff = max_a - min_a

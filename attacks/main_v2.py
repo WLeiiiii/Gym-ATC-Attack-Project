@@ -10,15 +10,15 @@ from envs.SimpleATC_env_flexible_v2 import SimpleEnv
 from models.dqn_model import QNetwork, ResBlock
 
 
-def without_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, episodes):
-    without_atk = Attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk=False, attack_p=False,
+def without_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes):
+    without_atk = Attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk=False, attack_g=False,
                          episodes=episodes)
     without_atk.run()
     without_atk.plot(atk_name="Without_Attack_safeDQN_X15")
     without_atk.save_data(atk_name="Without_Attack_safeDQN_X15")
 
-def uniform_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, episodes, frq, attack_p, method):
-    uni_atk = UniAttack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk=True, attack_p=attack_p,
+def uniform_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes, frq, attack_g, method):
+    uni_atk = UniAttack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk=True, attack_p=attack_g,
                         episodes=episodes, frq=frq, method=method)
     uni_atk.run()
     uni_atk.plot(atk_name="UniAttack with epsilon:{} & frq:{}_safeDQN_{}_X10".format(epsilon, frq, method))
@@ -26,9 +26,9 @@ def uniform_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsi
     pass
 
 
-def strategical_time_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, episodes, beta, attack_p,
+def strategical_time_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes, beta, attack_g,
                             method):
-    st_atk = STAttack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk=True, attack_p=attack_p,
+    st_atk = STAttack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk=True, attack_p=attack_g,
                       episodes=episodes, beta=beta, method=method)
     st_atk.run()
     st_atk.plot(atk_name="STAttack with epsilon:{} & beta:{}_safeDQN_{}_X10".format(epsilon, beta, method))
@@ -42,7 +42,7 @@ def main_v2():
     beta = 0.005
     alpha = 20
     frq = 0.25
-    attack_p = True  # True: attack DQN_p, False: attack DQN_j
+    attack_g = True  # True: attack DQN_p, False: attack DQN_j
     method = "F"
 
     seed = 9
@@ -51,16 +51,14 @@ def main_v2():
     torch.manual_seed(seed)
     env = SimpleEnv()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    agent_j = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
-    agent_p = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
-    load_path_j = "../save_model_new/2dqn_Xlines_model_01_j.pth"
-    load_path_p = "../save_model_new/2dqn_Xlines_model_01_p.pth"
-    # load_path_j = "../save_model/dqn_adv_training_model_02_j.pth"
-    # load_path_p = "../save_model/dqn_adv_training_model_02_p.pth"
+    agent_c = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
+    agent_g = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
+    load_path_c = "../save_model_new/2dqn_Xlines_model_01_c.pth"
+    load_path_g = "../save_model_new/2dqn_Xlines_model_01_g.pth"
 
-    without_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, episodes)
-    # uniform_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, episodes, frq, attack_p, method)
-    # strategical_time_attack(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, episodes, beta, attack_p,
+    without_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes)
+    # uniform_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes, frq, attack_g, method)
+    # strategical_time_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes, beta, attack_g,
     #                         method)
 
 

@@ -5,6 +5,7 @@ import pyglet
 import numpy as np
 import gym
 from gym import spaces
+from gym.utils import seeding
 
 from .config import Config
 
@@ -240,7 +241,6 @@ class SimpleEnv(gym.Env):
         ownship_img = rendering.Image(os.path.join(__location__, 'images/aircraft.png'), 32, 32)
         jtransform = rendering.Transform(rotation=self.drone.heading - math.pi / 2, translation=self.drone.position)
         ownship_img.add_attr(jtransform)
-        # ownship_img.set_color(0,255,0)
         ownship_img.set_color(255, 241, 4)  # set it to yellow
         self.viewer.onetime_geoms.append(ownship_img)
 
@@ -248,9 +248,7 @@ class SimpleEnv(gym.Env):
         for aircraft in self.intruder_list:
             intruder_img = rendering.Image(os.path.join(__location__, 'images/intruder.png'), 32, 32)
             jtransform = rendering.Transform(rotation=aircraft.heading - math.pi / 2, translation=aircraft.position)
-            # jtransform = rendering.Transform(rotation=aircraft.heading, translation=aircraft.position)
             intruder_img.add_attr(jtransform)
-            # intruder_img.set_color(0, 0, 255)
             intruder_img.set_color(237, 26, 32)  # red color
             self.viewer.onetime_geoms.append(intruder_img)
 
@@ -322,10 +320,8 @@ class SimpleEnv(gym.Env):
         pos_list = [(50, 50), (self.window_width - 50, 50), (self.window_width - 50, self.window_height - 50),
                     (50, self.window_height - 50)]
         rand_index = np.random.randint(1, 4)
-        # rand_index = 1
         position = pos_list[rand_index]
         speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
-        # speed = (self.min_speed + self.max_speed) / 2
         heading = math.pi / 4 + (math.pi / 2) * rand_index
         self.initial_point = position
         return [position, speed, heading]
@@ -352,7 +348,6 @@ class SimpleEnv(gym.Env):
         intruder = []
         for i in range(self.intruder_size):
             position = pos_list[i]
-            # speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
             speed = (self.min_speed + self.max_speed) / 2
             heading = head_list[i]
             intruder.append([position, speed, heading])
@@ -423,11 +418,9 @@ class Ownship(Aircraft):
     def step(self, a):
         self.heading += self.d_heading * (a[0] - 1)
         self.heading += random.uniform(0, self.heading_sigma)
-        # self.heading += self.heading_sigma
         self.speed += self.d_speed * (a[1] - 1)
         self.speed = max(self.min_speed, min(self.speed, self.max_speed))  # project to range
         self.speed += random.uniform(0, self.speed_sigma)
-        # self.speed += self.speed_sigma
         vx = self.speed * math.cos(self.heading)
         vy = self.speed * math.sin(self.heading)
         self.velocity = np.array([vx, vy])

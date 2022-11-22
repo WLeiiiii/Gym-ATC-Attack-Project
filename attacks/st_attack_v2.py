@@ -14,10 +14,10 @@ class STAttack(Attack):
 
     def attack(self, obs_tensor):
         obs = Variable(obs_tensor.data, requires_grad=True)
-        if self.attack_p:
-            agent = self.agent_p
+        if self.attack_g:
+            agent = self.agent_g
         else:
-            agent = self.agent_j
+            agent = self.agent_c
         # agent.eval()
         if self.can_attack:
             action = self.act(obs_tensor)

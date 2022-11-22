@@ -19,20 +19,20 @@ Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if 
 
 
 class Attack:
-    def __init__(self, env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon=0, atk=False, attack_p=False,
+    def __init__(self, env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon=0, atk=False, attack_g=False,
                  episodes=300, method="F"):
         self.method = method
         self.env = env
         self.epsilon = epsilon
         self.device = device
-        self.agent_j = agent_j
-        self.agent_p = agent_p
-        self.attack_p = attack_p
-        self.agent_j.load_state_dict(torch.load(load_path_j))
-        self.agent_p.load_state_dict(torch.load(load_path_p))
-        print('model loaded successfully from {} & {}'.format(load_path_j, load_path_p))
-        self.agent_j.eval()
-        self.agent_p.eval()
+        self.agent_c = agent_c
+        self.agent_g = agent_g
+        self.attack_g = attack_g
+        self.agent_c.load_state_dict(torch.load(load_path_c))
+        self.agent_g.load_state_dict(torch.load(load_path_g))
+        print('model loaded successfully from {} & {}'.format(load_path_c, load_path_g))
+        self.agent_c.eval()
+        self.agent_g.eval()
         self.can_attack = atk
         self.frames = []
         self.goal_num = 0
@@ -45,10 +45,10 @@ class Attack:
         self.attack_frq = []
         self.episodes = episodes
         self.attack_frq_window = deque(maxlen=episodes)
-        self.total_rewards_j = []
-        self.reward_window_j = deque(maxlen=episodes)
-        self.total_rewards_p = []
-        self.reward_window_p = deque(maxlen=episodes)
+        self.total_rewards_c = []
+        self.reward_window_c = deque(maxlen=episodes)
+        self.total_rewards_g = []
+        self.reward_window_g = deque(maxlen=episodes)
         self.steps_num_mean = []
         self.steps_num_window = deque(maxlen=episodes)
 
@@ -85,11 +85,11 @@ class Attack:
             self.max_step_num += results[3]
             self.average_steps = results[4]
             conflict_frq = self.conflict_num / self.total_timestep
-            self.reward_window_j.append(total_reward[0])
-            self.total_rewards_j.append(np.mean(self.reward_window_j))
-            self.reward_window_p.append(total_reward[1])
-            self.total_rewards_p.append(np.mean(self.reward_window_p))
-            self.total_rewards.append(self.total_rewards_j[-1] + self.total_rewards_p[-1])
+            self.reward_window_c.append(total_reward[0])
+            self.total_rewards_c.append(np.mean(self.reward_window_c))
+            self.reward_window_g.append(total_reward[1])
+            self.total_rewards_g.append(np.mean(self.reward_window_g))
+            self.total_rewards.append(self.total_rewards_c[-1] + self.total_rewards_g[-1])
             self.attack_frq_window.append(self.attack_frequency)
             self.attack_frq.append(np.mean(self.attack_frq_window))
             print(self.total_rewards[-1], self.attack_frq[-1])
@@ -106,18 +106,20 @@ class Attack:
         print("--------------------------------")
 
     def act(self, state, epsilon=0.):
-        self.agent_j.eval()
-        self.agent_p.eval()
-        q_value_j = self.agent_j(state)
-        q_value_p = self.agent_p(state)
-        q_value = q_value_j + q_value_p
-        self.agent_j.train(,,  # back to train mode
-        self.agent_p.train(,,  # back to train mode
+        self.agent_c.eval()
+        self.agent_g.eval()
+        q_value_c = self.agent_c(state)
+        q_value_g = self.agent_g(state)
+        q_value = q_value_c + q_value_g
+        self.agent_c.train()  # back to train mode
+        self.agent_g.train() # back to train mode
 
         if random.random() > epsilon:
+
+            # select the safe action: q_value_g >= threshold
             for i in range(1, len(q_value[0])):
                 index_max = np.argsort(q_value.cpu().data.numpy())[-1][-i]
-                if q_value_p.cpu().data.numpy()[0][index_max] < np.mean(q_value_p.cpu().data.numpy()):
+                if q_value_g.cpu().data.numpy()[0][index_max] < np.mean(q_value_g.cpu().data.numpy()):
                 # if q_value_p.cpu().data.numpy()[0][index_max] < np.median(q_value_p.cpu().data.numpy()):
                     continue
                 else:
@@ -128,10 +130,10 @@ class Attack:
 
     def attack(self, obs_tensor):
         obs = Variable(obs_tensor.data, requires_grad=True)
-        if self.attack_p:
-            agent = self.agent_p
+        if self.attack_g:
+            agent = self.agent_g
         else:
-            agent = self.agent_j
+            agent = self.agent_c
         agent.eval()
         if self.can_attack:
             action = self.act(obs_tensor)

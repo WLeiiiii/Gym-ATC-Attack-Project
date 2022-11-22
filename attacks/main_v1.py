@@ -35,9 +35,8 @@ def strategical_time_attack(env, device, agent, load_path, epsilon, episodes, be
 def main():
     episodes = 500
     epsilon = 0.03
-    beta = 0.025
-    alpha = 100
-    frq = 0.5
+    beta = 0.025  # ST Attack threshold
+    frq = 0.5  # Uni Attack frequency
     method = "F"  # "F":fgsm, "G":gradient based attack
 
     seed = 9
