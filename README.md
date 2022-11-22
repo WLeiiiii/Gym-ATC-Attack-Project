@@ -20,15 +20,13 @@ pip install -r requirements.txt
 
 The definition of environment is in `envs`: 
 
-`envs/SimpleATC_env` is for **traditional DQN** agent with global perception;
+* `envs/SimpleATC_env` is for **traditional DQN** agent with **global** perception
 
-`envs/SimpleATC_env_v2` is for **safety-aware DQN(SafeDQN)** agent with global perception;
+* `envs/SimpleATC_env_v2` is for **safety-aware DQN(SafeDQN)** agent with **global** perception
 
-`envs/SimpleATC_env_flexible` is for **traditional DQN** agent with local perception;
+* `envs/SimpleATC_env_flexible` is for **traditional DQN** agent with **local** perception
 
-`envs/SimpleATC_env_flexible_v2` is for **safety-aware DQN(SafeDQN)** agent with local perception.
-
-
+* `envs/SimpleATC_env_flexible_v2` is for **safety-aware DQN(SafeDQN)** agent with **local** perception
 
 Parameter of the environments can be found in `envs/Config.py`
 
