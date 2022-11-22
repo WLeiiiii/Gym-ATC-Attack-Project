@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from agents.dqn_agent_simple_env_v2 import Agent2
-from envs.SimpleATC_env_five_v2 import SimpleEnv
+from envs.SimpleATC_env_v2 import SimpleEnv
 from utils.display_plt import display_plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'

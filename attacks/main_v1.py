@@ -6,7 +6,7 @@ import torch
 from attacks.attack_v1 import Attack
 from attacks.st_attack_v1 import STAttack
 from attacks.uni_attack_v1 import UniAttack
-from envs.SimpleATC_env_five import SimpleEnv
+from envs.SimpleATC_env import SimpleEnv
 from models.dqn_model import QNetwork, ResBlock
 
 

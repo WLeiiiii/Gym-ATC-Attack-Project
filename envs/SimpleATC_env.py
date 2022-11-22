@@ -5,7 +5,6 @@ import pyglet
 import numpy as np
 import gym
 from gym import spaces
-from gym.utils import seeding
 
 from .config import Config
 
@@ -20,11 +19,17 @@ class DrawText:
 
 class SimpleEnv(gym.Env):
     def __init__(self):
+        self.goal_num = 0
         self.epochs = -1
         self.goal_num_up = 0
         self.collision_num_up = 0
+        self.collision_num = 0
         self.wall_num_up = 0
+        self.max_step_up = 0
+        self.max_steps_num = 0
         self.initial_point = ()
+        self.steps_num = []
+        self.steps_num_mean = []
         self.np_random = None
         self.load_config()
         self.state = None
@@ -33,11 +38,11 @@ class SimpleEnv(gym.Env):
                       [(340, 750), (200, 50)],
                       [(750, 300), (50, 590)],
                       [(250, 750), (650, 50)],
-                      [(600, 50), (450, 750)],
-                      [(350, 50), (50, 450)],
-                      [(50, 500), (750, 700)],
-                      [(750, 500), (450, 50)],
-                      [(50, 700), (750, 600)],
+                      # [(600, 50), (450, 750)],
+                      # [(350, 50), (50, 450)],
+                      # [(50, 500), (750, 700)],
+                      # [(750, 500), (450, 50)],
+                      # [(50, 700), (750, 600)],
                       [(400, 50), (400, 750)]]
 
         state_dimension = self.intruder_size * 4 + 8
@@ -48,11 +53,12 @@ class SimpleEnv(gym.Env):
             high=np.array([self.window_width, self.window_height]),
             dtype=np.float32
         )
-        self.seed(2)
+        # self.seed(2)
 
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random()
-        return [seed]
+    #
+    # def seed(self, seed=None):
+    #     self.np_random, seed = seeding.np_random()
+    #     return [seed]
 
     def load_config(self):
         self.window_width = Config.window_width
@@ -71,6 +77,7 @@ class SimpleEnv(gym.Env):
         self.max_speed = Config.max_speed
 
     def reset(self):
+        self.max_steps = 1000
         self.epochs += 1
         self.goal = Goal(position=self.random_pos())
         # self.goal = Goal(position=(self.window_width / 2, self.window_height / 2))
@@ -93,11 +100,18 @@ class SimpleEnv(gym.Env):
 
             self.intruder_list.append(intruder)
 
+        if self.goal_num:
+            self.steps_num.append(self.max_steps_num)
+            self.steps_num_mean.append(int(np.mean(self.steps_num)))
+        else:
+            self.steps_num_mean.append(0)
         self.no_conflict = 0
         self.conflict_num = 0
         self.collision_num = 0
         self.goal_num = 0
         self.wall_num = 0
+        self.max_step = 0
+        self.max_steps_num = 0
 
         return self._get_obs()
 
@@ -129,6 +143,10 @@ class SimpleEnv(gym.Env):
         return np.array(s)
 
     def step(self, action):
+        self.max_steps_num += 1
+        if self.max_steps_num == self.max_steps:
+            self.max_step += 1
+            self.max_step_up += 1
         a = np.zeros(2)
         a[0] = action // 3
         a[1] = action % 3
@@ -183,10 +201,10 @@ class SimpleEnv(gym.Env):
             return Config.conflict_penalty, False, 'c'  # conflict
 
         # if ownship out of map
-        if not self.position_range.contains(self.drone.position):
-            self.wall_num += 1
-            self.wall_num_up += 1
-            return Config.wall_penalty, True, 'w'  # out-of-map
+        # if not self.position_range.contains(self.drone.position):
+        #     self.wall_num += 1
+        #     self.wall_num_up += 1
+        #     return Config.wall_penalty, True, 'w'  # out-of-map
 
         if dist(self.drone, self.goal) < self.goal_radius:
             self.goal_num += 1
@@ -196,7 +214,7 @@ class SimpleEnv(gym.Env):
         if Config.sparse_reward:
             return Config.step_penalty, False, ''
         else:
-            return -dist(self.drone, self.goal) / 2400, False, ''
+            return -dist(self.drone, self.goal) / 2400 + Config.step_penalty, False, ''
 
     def render(self, mode="human"):
         from gym.envs.classic_control import rendering
@@ -211,7 +229,7 @@ class SimpleEnv(gym.Env):
         import os
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-        # draw airlines
+        # draw 10 airlines
         for [x1, x2] in self.lines:
             line = rendering.Line(x1, x2)
             line.set_color(0, 0, 255)
@@ -251,20 +269,35 @@ class SimpleEnv(gym.Env):
 
         text_collision = "Collision：{}/{}".format(self.collision_num_up, self.epochs)
         label_collision = pyglet.text.Label(text_collision, font_name="Times New Roman", font_size=20,
-                                       stretch=True,
-                                       x=15, y=740, anchor_x='left', anchor_y='bottom',
-                                       color=(255, 80, 20, 255))
+                                            stretch=True,
+                                            x=15, y=740, anchor_x='left', anchor_y='bottom',
+                                            color=(255, 80, 20, 255))
         label_collision.draw()
 
-        text_wall = "Wall：{}/{}".format(self.wall_num_up, self.epochs)
-        label_wall = pyglet.text.Label(text_wall, font_name="Times New Roman", font_size=20,
-                                            stretch=True,
-                                            x=15, y=710, anchor_x='left', anchor_y='bottom',
-                                            color=(255, 80, 20, 255))
-        label_wall.draw()
+        text_step = "Max step：{}/{}".format(self.max_step_up, self.epochs)
+        label_step = pyglet.text.Label(text_step, font_name="Times New Roman", font_size=20,
+                                       stretch=True,
+                                       x=15, y=710, anchor_x='left', anchor_y='bottom',
+                                       color=(255, 80, 20, 255))
+        label_step.draw()
+
+        text_steps = self.steps_num_mean[-1]
+        if text_steps:
+            self.text_steps_copy = text_steps
+        else:
+            if len(self.steps_num_mean) <= 2:
+                self.text_steps_copy = self.steps_num_mean[-1]
+        text_steps_ep = "Steps：{}(Average: {})".format(self.max_steps_num, self.text_steps_copy)
+        label_steps_ep = pyglet.text.Label(text_steps_ep, font_name="Times New Roman", font_size=20,
+                                           stretch=True,
+                                           x=15, y=680, anchor_x='left', anchor_y='bottom',
+                                           color=(255, 80, 20, 255))
+        label_steps_ep.draw()
+
         self.viewer.onetime_geoms.append(DrawText(label_goal))
         self.viewer.onetime_geoms.append(DrawText(label_collision))
-        self.viewer.onetime_geoms.append(DrawText(label_wall))
+        self.viewer.onetime_geoms.append(DrawText(label_step))
+        self.viewer.onetime_geoms.append(DrawText(label_steps_ep))
 
         return self.viewer.render(return_rgb_array=True)
 
@@ -287,12 +320,13 @@ class SimpleEnv(gym.Env):
     def reset_drone(self):
         pos_list = [(50, 50), (self.window_width - 50, 50), (self.window_width - 50, self.window_height - 50),
                     (50, self.window_height - 50)]
-        rand_index = random.randrange(4)
-        position = pos_list[rand_index],
-        speed = np.random.uniform(low=self.min_speed, high=self.max_speed),
+        rand_index = np.random.randint(1, 4)
+        position = pos_list[rand_index]
+        speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
+        # speed = (self.min_speed + self.max_speed) / 2
         heading = math.pi / 4 + (math.pi / 2) * rand_index
-        self.initial_point = position[0]
-        return [position[0], speed[0], heading]
+        self.initial_point = position
+        return [position, speed, heading]
 
     def reset_intruder(self):
         pos_list = []
@@ -316,10 +350,10 @@ class SimpleEnv(gym.Env):
         intruder = []
         for i in range(self.intruder_size):
             position = pos_list[i]
-            speed = np.random.uniform(low=self.min_speed, high=self.max_speed),
-            # speed = (self.min_speed + self.max_speed) / 2
+            # speed = np.random.uniform(low=self.min_speed, high=self.max_speed)
+            speed = (self.min_speed + self.max_speed) / 2
             heading = head_list[i]
-            intruder.append([position, speed[0], heading])
+            intruder.append([position, speed, heading])
         return intruder
 
     def random_pos(self):
@@ -346,7 +380,10 @@ class SimpleEnv(gym.Env):
         return min_dist
 
     def terminal_info(self):
-        return [self.goal_num, self.conflict_num, self.collision_num, self.wall_num]
+        return [self.goal_num, self.conflict_num, self.collision_num, self.max_step, self.text_steps_copy]
+
+    def init(self):
+        self.__init__()
 
 
 class Goal:
@@ -386,11 +423,12 @@ class Ownship(Aircraft):
 
     def step(self, a):
         self.heading += self.d_heading * (a[0] - 1)
-        self.heading += np.random.normal(0, self.heading_sigma)
+        self.heading += random.uniform(0, self.heading_sigma)
+        # self.heading += self.heading_sigma
         self.speed += self.d_speed * (a[1] - 1)
         self.speed = max(self.min_speed, min(self.speed, self.max_speed))  # project to range
-        self.speed += np.random.normal(0, self.speed_sigma)
-
+        self.speed += random.uniform(0, self.speed_sigma)
+        # self.speed += self.speed_sigma
         vx = self.speed * math.cos(self.heading)
         vy = self.speed * math.sin(self.heading)
         self.velocity = np.array([vx, vy])
