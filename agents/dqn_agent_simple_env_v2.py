@@ -23,15 +23,16 @@ class Agent2:
         self.state_size = state_size
         self.action_size = action_size
 
-        self.local_j = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
+        # Goal DQN
+        self.local_c = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
         # move model to either gpu or cpu
-        self.target_j = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
-        self.optimizer_j = optim.Adam(self.local_j.parameters(), lr=LEARNING_RATE)
+        self.target_c = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
+        self.optimizer_c = optim.Adam(self.local_c.parameters(), lr=LEARNING_RATE)
 
-        self.local_p = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
-        # move model to either gpu or cpu
-        self.target_p = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
-        self.optimizer_p = optim.Adam(self.local_p.parameters(), lr=LEARNING_RATE)
+        # Safe DQN
+        self.local_g = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
+        self.target_g = QNetwork(state_size, action_size, ResBlock, [6, 6, 6]).to(device)
+        self.optimizer_g = optim.Adam(self.local_g.parameters(), lr=LEARNING_RATE)
 
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE)
         self.time_step = 0
@@ -48,25 +49,23 @@ class Agent2:
     def act(self, state, epsilon=0.):
         '''Choose an action given state using epsilon-greedy'''
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        self.local_j.eval()  # change model to evaluation mode
-        self.local_p.eval()
+        self.local_c.eval()  # change model to evaluation mode
+        self.local_g.eval()
         # with torch.no_grad():  # turn off gradient descent since evaluating
-        q_value_j = self.local_j(state)
-        q_value_p = self.local_p(state)
+        q_value_j = self.local_c(state)
+        q_value_p = self.local_g(state)
         q_value = q_value_j + q_value_p
-        self.local_j.train()  # back to train mode
-        self.local_p.train()  # back to train mode
+        self.local_c.train()  # back to train mode
+        self.local_g.train()  # back to train mode
 
         if random.random() > epsilon:
             for i in range(1, len(q_value[0])):
                 index_max = np.argsort(q_value.cpu().data.numpy())[-1][-i]
                 # if q_value_p.cpu().data.numpy()[0][index_max] < np.mean(q_value_p.cpu().data.numpy()):
                 if q_value_p.cpu().data.numpy()[0][index_max] < np.median(q_value_p.cpu().data.numpy()):
-                    # print(np.mean(q_value_p.cpu().data.numpy()), np.median(q_value_p.cpu().data.numpy()))
                     continue
                 else:
                     return index_max
-            # return np.argmax(q_value.cpu().data.numpy())  # move q_value to cpu
         else:
             return random.choice(np.arange(self.action_size))
         pass
@@ -75,28 +74,28 @@ class Agent2:
         '''learning from batch'''
         states, actions, rewards, next_states, dones = experiences
         # get the max predicted q value for next state
-        q_target_next_j = self.target_j(next_states).detach().max(1)[0].unsqueeze(1)
+        q_target_next_c = self.target_c(next_states).detach().max(1)[0].unsqueeze(1)
         # detach the variable from the graph using detach()
-        q_target_j = rewards[0] + (gamma * q_target_next_j * (1 - dones))
-        q_expected_j = self.local_j(states).gather(1, actions)
+        q_target_c = rewards[0] + (gamma * q_target_next_c * (1 - dones))
+        q_expected_c = self.local_c(states).gather(1, actions)
 
-        loss = F.mse_loss(q_expected_j, q_target_j)
-        self.optimizer_j.zero_grad()  # zero gradient if not pytorch will accmulate
+        loss = F.mse_loss(q_expected_c, q_target_c)
+        self.optimizer_c.zero_grad()  # zero gradient if not pytorch will accmulate
         loss.backward()
-        self.optimizer_j.step()
+        self.optimizer_c.step()
 
-        self.soft_update(self.local_j, self.target_j, TAU)
+        self.soft_update(self.local_c, self.target_c, TAU)
 
-        q_target_next_p = self.target_p(next_states).detach().max(1)[0].unsqueeze(1)
+        q_target_next_g = self.target_g(next_states).detach().max(1)[0].unsqueeze(1)
         # detach the variable from the graph using detach()
-        q_target_p = rewards[1] + (gamma * q_target_next_p * (1 - dones))
-        q_expected_p = self.local_p(states).gather(1, actions)
+        q_target_g = rewards[1] + (gamma * q_target_next_g * (1 - dones))
+        q_expected_g = self.local_g(states).gather(1, actions)
 
-        loss = F.mse_loss(q_expected_p, q_target_p)
-        self.optimizer_p.zero_grad()  # zero gradient if not pytorch will accmulate
+        loss = F.mse_loss(q_expected_g, q_target_g)
+        self.optimizer_g.zero_grad()  # zero gradient if not pytorch will accmulate
         loss.backward()
-        self.optimizer_p.step()
-        self.soft_update(self.local_p, self.target_p, TAU)
+        self.optimizer_g.step()
+        self.soft_update(self.local_g, self.target_g, TAU)
         pass
 
     def soft_update(self, local_net, target_net, tau):

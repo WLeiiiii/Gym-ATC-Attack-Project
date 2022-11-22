@@ -5,7 +5,7 @@ from collections import deque
 
 import numpy as np
 import torch
-from matplotlib import pyplot as plt, animation
+from matplotlib import pyplot as plt
 
 from agents.dqn_agent_simple_env import Agent
 from envs.SimpleATC_env_flexible import SimpleEnv
@@ -80,7 +80,7 @@ def evaluate(env, agent, save_path):
     conflict_num = 0
     total_timestep = 0
     total_rewards = []
-    results =[]
+    results = []
     # frames = []
     reward_window = deque(maxlen=300)
     agent.local.load_state_dict(torch.load(save_path))
@@ -134,7 +134,7 @@ def evaluate(env, agent, save_path):
     env.close()
     # display_frames_as_gif(frames)
     fig = plt.figure()
-    # ax = fig.add_subplot(111)
+    ax = fig.add_subplot(111)
     plt.plot(np.arange(len(total_rewards)), total_rewards)
     plt.ylabel('Score')
     plt.xlabel('Episode')
@@ -146,29 +146,26 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--episodes', '-e', type=int, default=19999)
-    parser.add_argument('--train', type=bool, default=True)
+    parser.add_argument('--train', type=bool, default=False)
     parser.add_argument('--seed', type=int, default=9)
-    # parser.add_argument('--load_path', type=str, default="save_model/dqn_model_01.pth")
     parser.add_argument('--save_path', type=str, default='../save_model/dqn_Xlines_model_01.pth')
+    parser.add_argument('--load_path', type=str, default='../save_model/dqn_Xlines_model_01.pth')
     args = parser.parse_args()
 
     env = SimpleEnv()
     print('state dimension:', env.observation_space.shape)
     print('action dimension:', env.action_space.n)
 
-    # env.seed(args.seed)
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    # torch.cuda.manual_seed(args.seed)
-    # torch.backends.cudnn.deterministic = True
 
     agent = Agent(state_size=env.observation_space.shape[0], action_size=env.action_space.n)
 
     if args.train:
         train(env, agent, n_episodes=args.episodes, save_path=args.save_path)
 
-    evaluate(env, agent, save_path=args.save_path)
+    evaluate(env, agent, save_path=args.load_path)
 
 
 if __name__ == "__main__":

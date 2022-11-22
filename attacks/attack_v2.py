@@ -111,8 +111,8 @@ class Attack:
         q_value_j = self.agent_j(state)
         q_value_p = self.agent_p(state)
         q_value = q_value_j + q_value_p
-        self.agent_j.train()  # back to train mode
-        self.agent_p.train()  # back to train mode
+        self.agent_j.train(,,  # back to train mode
+        self.agent_p.train(,,  # back to train mode
 
         if random.random() > epsilon:
             for i in range(1, len(q_value[0])):

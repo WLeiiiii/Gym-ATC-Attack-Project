@@ -41,9 +41,7 @@ class Agent:
 
     def act(self, state, epsilon=0.):
         '''Choose an action given state using epsilon-greedy'''
-        # state = state.reshape(1, -1)
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        # state = state.float().unsqueeze(0).to(device)
         self.local.eval()  # change model to evaluation mode
         # with torch.no_grad():  # turn off gradient descent since evaluating
         q_value = self.local(state)
@@ -65,7 +63,6 @@ class Agent:
         q_expected = self.local(states).gather(1, actions)
 
         loss = F.mse_loss(q_expected, q_target)
-        # print(loss)
         self.optimizer.zero_grad()  # zero gradient if not pytorch will accmulate
         loss.backward()
         self.optimizer.step()
