@@ -5,9 +5,9 @@ from attacks.attack_v2 import Attack, Variable
 
 
 class UniAttack(Attack):
-    def __init__(self, env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk, attack_p, episodes,
+    def __init__(self, env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk, attack_g, episodes,
                  method, frq=1.0):
-        super().__init__(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk, attack_p, episodes,
+        super().__init__(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk, attack_g, episodes,
                          method)
         self.frq = frq
 

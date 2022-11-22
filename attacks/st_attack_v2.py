@@ -6,9 +6,9 @@ from attacks.attack_v2 import Attack, Variable
 
 
 class STAttack(Attack):
-    def __init__(self, env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk, attack_p, episodes,
+    def __init__(self, env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk, attack_g, episodes,
                  method, beta):
-        super().__init__(env, device, agent_j, agent_p, load_path_j, load_path_p, epsilon, atk, attack_p, episodes,
+        super().__init__(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, atk, attack_g, episodes,
                          method)
         self.beta = beta
 
@@ -29,10 +29,10 @@ class STAttack(Attack):
             logsoftmax = nn.LogSoftmax(dim=-1)
             prob = logsoftmax(logits)
             prob_np = softmax(logits).cpu().detach().numpy()
-            prob_a = prob_np[0][0] + prob_np[0][1] + prob_np[0][2]
-            prob_b = prob_np[0][3] + prob_np[0][4] + prob_np[0][5]
-            prob_c = prob_np[0][6] + prob_np[0][7] + prob_np[0][8]
-            prob_heading = [prob_a, prob_b, prob_c]
+            prob_r = prob_np[0][0] + prob_np[0][1] + prob_np[0][2]
+            prob_k = prob_np[0][3] + prob_np[0][4] + prob_np[0][5]
+            prob_l = prob_np[0][6] + prob_np[0][7] + prob_np[0][8]
+            prob_heading = [prob_r, prob_k, prob_l]
             max_a = np.amax(prob_heading)
             min_a = np.amin(prob_heading)
             diff = max_a - min_a
