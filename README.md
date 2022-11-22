@@ -28,7 +28,7 @@ The definition of environment is in `envs`:
 
 * `envs/SimpleATC_env_flexible_v2` is for **safety-aware DQN(SafeDQN)** agent with local perception
 
-Parameter of the environments can be found in `envs/config.py`
+Parameter of the environments can be found in `envs/config.py`.
 
 ### DQN Agents
 
@@ -45,13 +45,21 @@ python dqn_simple_env.py --train=True --save_path=" "
 You can find the DQN structure in `models/dqn_model`.
 ### Adversarial Attacks
 
+The adversarial attack methods are in `attacks`:
+
+* `v1` for **traditional DQN** agent
+* `v2` for **safety-aware DQN(SafeDQN)** agent
+
 ## Demo
-|                  |         Without Attack         |                     Uniform Attack                      |           Strategically-Timed Attack            |
-|:----------------:|:------------------------------:|:-------------------------------------------------------:|:-----------------------------------------------:|
-|    **DQN-10**    |   ![image](gifs/DQN-10.gif)    |           ![image](gifs/DQN-10-UniAttack.gif)           |       ![image](gifs/DQN-10-STAttack.gif)        |
-|   **DQN-X10**    |   ![image](gifs/DQN-X10.gif)   |          ![image](gifs/DQN-X10-UniAttack.gif)           |       ![image](gifs/DQN-X10-STAttack.gif)       |
-|  **safeDQN-10**  | ![image](gifs/safeDQN-10.gif)  |         ![image](gifs/safeDQN-10-UniAttack.gif)         |     ![image](gifs/safeDQN-10-STAttack.gif)      | 
-| **safeDQN-X10**  | ![image](gifs/safeDQN-X10.gif) |        ![image](gifs/safeDQN-X10-UniAttack.gif)         |     ![image](gifs/safeDQN-X10-STAttack.gif)     |
+Here, we present the gifs of four models under
+10 routes scenarios without/with adversarial attacks.
+
+|               |         Without Attack         |                     Uniform Attack                      |           Strategically-Timed Attack            |
+|:-------------:|:------------------------------:|:-------------------------------------------------------:|:-----------------------------------------------:|
+|    **DQN**    |   ![image](gifs/DQN-10.gif)    |           ![image](gifs/DQN-10-UniAttack.gif)           |       ![image](gifs/DQN-10-STAttack.gif)        |
+|   **DQN-X**   |   ![image](gifs/DQN-X10.gif)   |          ![image](gifs/DQN-X10-UniAttack.gif)           |       ![image](gifs/DQN-X10-STAttack.gif)       |
+|  **safeDQN**  | ![image](gifs/safeDQN-10.gif)  |         ![image](gifs/safeDQN-10-UniAttack.gif)         |     ![image](gifs/safeDQN-10-STAttack.gif)      | 
+| **safeDQN-X** | ![image](gifs/safeDQN-X10.gif) |        ![image](gifs/safeDQN-X10-UniAttack.gif)         |     ![image](gifs/safeDQN-X10-STAttack.gif)     |
 
 
 
