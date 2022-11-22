@@ -20,18 +20,29 @@ pip install -r requirements.txt
 
 The definition of environment is in `envs`: 
 
-* `envs/SimpleATC_env` is for **traditional DQN** agent with **global** perception
+* `envs/SimpleATC_env` is for **traditional DQN** agent with global perception
 
-* `envs/SimpleATC_env_v2` is for **safety-aware DQN(SafeDQN)** agent with **global** perception
+* `envs/SimpleATC_env_v2` is for **safety-aware DQN(SafeDQN)** agent with global perception
 
-* `envs/SimpleATC_env_flexible` is for **traditional DQN** agent with **local** perception
+* `envs/SimpleATC_env_flexible` is for **traditional DQN** agent with local perception
 
-* `envs/SimpleATC_env_flexible_v2` is for **safety-aware DQN(SafeDQN)** agent with **local** perception
+* `envs/SimpleATC_env_flexible_v2` is for **safety-aware DQN(SafeDQN)** agent with local perception
 
-Parameter of the environments can be found in `envs/Config.py`
+Parameter of the environments can be found in `envs/config.py`
 
 ### DQN Agents
 
+You can train and evaluate a model in `agents`:
+
+* `agents/dqn_simple_env` is for **traditional DQN** agent
+* `agents/dqn_simple_env_v2` & `agents/dqn_simple_env_v2_X` are both for **safety-aware DQN(SafeDQN)** agent, while the latter is for **SafeDQN-X**, which only needs k-nearest neighbours' information for flexible airways
+
+For training:
+```bash
+# take traditional DQN as an example
+python dqn_simple_env.py --train=True --save_path=" "
+```
+You can find the DQN structure in `models/dqn_model`.
 ### Adversarial Attacks
 
 ## Demo
