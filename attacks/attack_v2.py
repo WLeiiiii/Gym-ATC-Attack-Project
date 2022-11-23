@@ -157,7 +157,7 @@ class Attack:
     def save_data(self, atk_name="Without_attack"):
         header = ["score"]
         df = pd.DataFrame(columns=header, data=self.total_rewards)
-        df.to_csv("../save_data_new/" + atk_name + ".csv")
+        df.to_csv("../save_data/" + atk_name + ".csv")
 
         result = [[self.goal_num / self.episodes, self.collision_num / self.episodes, self.max_step_num / self.episodes,
                    self.average_steps, self.conflict_num / self.total_timestep, self.total_rewards[-1],
@@ -165,7 +165,7 @@ class Attack:
         headers = ["Success rate", "Collision rate", "Max Steps Reached rate", "Mean Steps", "Conflict rate",
                    "Mean score", "Attack Frequency"]
         df = pd.DataFrame(columns=headers, data=result)
-        df.to_csv("../save_data_new/" + atk_name + "_results.csv")
+        df.to_csv("../save_data/" + atk_name + "_results.csv")
         pass
 
     def fgsm(self, obs, action, prob, agent):

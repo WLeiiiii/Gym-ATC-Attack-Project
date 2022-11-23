@@ -6,7 +6,9 @@ import torch
 from attacks.attack_v2 import Attack
 from attacks.st_attack_v2 import STAttack
 from attacks.uni_attack_v2 import UniAttack
-from envs.SimpleATC_env_flexible_v2 import SimpleEnv
+
+from envs.SimpleATC_env_global_v2 import SimpleEnvV2
+from envs.SimpleATC_env_local_v2 import SimpleEnvLocalV2
 from models.dqn_model import QNetwork, ResBlock
 
 
@@ -49,12 +51,15 @@ def main_v2():
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    env = SimpleEnv()
+    # env = SimpleEnvV2()  # safeDQN
+    env = SimpleEnvLocalV2()  # safeDQN-X
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     agent_c = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
     agent_g = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
-    load_path_c = "../save_model_new/2dqn_Xlines_model_01_c.pth"
-    load_path_g = "../save_model_new/2dqn_Xlines_model_01_g.pth"
+    load_path_c = "../save_model/2dqn_10lines_model_01_c.pth"
+    load_path_g = "../save_model/2dqn_10lines_model_01_g.pth"
+    # load_path_c = "../save_model/2dqn_Xlines_model_01_c.pth"
+    # load_path_g = "../save_model/2dqn_Xlines_model_01_g.pth"
 
     without_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes)
     # uniform_attack(env, device, agent_c, agent_g, load_path_c, load_path_g, epsilon, episodes, frq, attack_g, method)

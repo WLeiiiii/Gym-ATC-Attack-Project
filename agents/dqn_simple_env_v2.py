@@ -7,7 +7,9 @@ import numpy as np
 import torch
 
 from agents.dqn_agent_simple_env_v2 import Agent2
-from envs.SimpleATC_env_v2 import SimpleEnv
+from envs.SimpleATC_env_global_v2 import SimpleEnvV2
+from envs.SimpleATC_env_local_v2 import SimpleEnvLocalV2
+from envs.SimpleATC_env_local_x_v2 import SimpleEnvLocalXV2
 from utils.display_plt import display_plt
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -157,7 +159,7 @@ def main():
     parser.add_argument('--load_path_g', type=str, default='../save_model_new/2dqn_5lines_model_01_g.pth')
     args = parser.parse_args()
 
-    env = SimpleEnv()
+    env = SimpleEnvV2()
     print('state dimension:', env.observation_space.shape)
     print('action dimension:', env.action_space.n)
 

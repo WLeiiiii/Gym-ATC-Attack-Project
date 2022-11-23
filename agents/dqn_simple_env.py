@@ -8,7 +8,9 @@ import torch
 from matplotlib import pyplot as plt
 
 from agents.dqn_agent_simple_env import Agent
-from envs.SimpleATC_env_flexible import SimpleEnv
+from envs.SimpleATC_env_global import SimpleEnv
+from envs.SimpleATC_env_local import SimpleEnvLocal
+from envs.SimpleATC_env_local_x import SimpleEnvLocalX
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -152,7 +154,9 @@ def main():
     parser.add_argument('--load_path', type=str, default='../save_model/dqn_Xlines_model_01.pth')
     args = parser.parse_args()
 
-    env = SimpleEnv()
+    env = SimpleEnv()  # fixed airways with global perception
+    # env = SimpleEnvLocal()  # fixed airways with local perception
+    # env = SimpleEnvLocalX()  # random airways with local perception
     print('state dimension:', env.observation_space.shape)
     print('action dimension:', env.action_space.n)
 

@@ -6,7 +6,8 @@ import torch
 from attacks.attack_v1 import Attack
 from attacks.st_attack_v1 import STAttack
 from attacks.uni_attack_v1 import UniAttack
-from envs.SimpleATC_env import SimpleEnv
+from envs.SimpleATC_env_global import SimpleEnv
+from envs.SimpleATC_env_local import SimpleEnvLocal
 from models.dqn_model import QNetwork, ResBlock
 
 
@@ -42,11 +43,13 @@ def main():
     seed = 9
     random.seed(seed)
     np.random.seed(seed)
-    env = SimpleEnv()
+    env = SimpleEnv()  # global perception, DQN
+    # env = SimpleEnvLocal()  #  local perception, DQN-X
     torch.manual_seed(seed)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     agent = QNetwork(env.observation_space.shape[0], env.action_space.n, ResBlock, [6, 6, 6]).to(device)
-    load_path = "../save_model_new/dqn_10lines_model_01.pth"
+    load_path = "../save_model/dqn_10lines_model_01.pth"
+    # load_path = "../save_model/dqn_Xlines_model_01.pth"  # DQN-X
 
     without_attack(env, device, agent, load_path, epsilon, episodes)
     # uniform_attack(env, device, agent, load_path, epsilon, episodes, frq, method)

@@ -20,21 +20,21 @@ class DrawText:
 
 class SimpleEnv(gym.Env):
     def __init__(self):
+        self.goal_num = 0
         self.epochs = -1
         self.goal_num_up = 0
         self.collision_num_up = 0
-        self.wall_num_up = 0
-        self.goal_num = 0
         self.collision_num = 0
+        self.wall_num_up = 0
         self.max_step_up = 0
         self.max_steps_num = 0
         self.initial_point = ()
+        self.steps_num = []
+        self.steps_num_mean = []
         self.np_random = None
         self.load_config()
         self.state = None
         self.viewer = None
-        self.steps_num = []
-        self.steps_num_mean = []
         self.lines = [[(50, 250), (750, 390)],
                       [(340, 750), (200, 50)],
                       [(750, 300), (50, 590)],
@@ -44,10 +44,27 @@ class SimpleEnv(gym.Env):
                       [(350, 50), (50, 450)],
                       [(50, 500), (750, 700)],
                       [(750, 500), (450, 50)],
-                      [(750, 600), (50, 700)]
-                      ]
+                      [(750, 600), (50, 700)],
+                      [(600, 750), (300, 50)],
+                      [(50, 200), (750, 200)],
+                      [(750, 450), (50, 400)],
+                      [(50, 650), (750, 550)],
+                      [(700, 750), (550, 50)],
+                      [(50, 300), (250, 50)],
+                      [(550, 750), (750, 350)],
+                      [(500, 750), (50, 550)],
+                      [(160, 750), (500, 50)],
+                      [(750, 150), (650, 750)],
+                      [(50, 150), (300, 750)],
+                      [(150, 50), (750, 250)],
+                      [(50, 350), (750, 650)],
+                      [(700, 50), (100, 750)],
+                      [(50, 530), (530, 50)]]
 
-        state_dimension = self.intruder_size * 4 + 8
+        self.lines_draw = self.lines[:self.intruder_size]
+        self.intruder_nearest = self.intruder_size
+
+        state_dimension = self.intruder_nearest * 4 + 8
         self.observation_space = spaces.Box(low=-1000, high=1000, shape=(state_dimension,), dtype=np.float32)
         self.action_space = spaces.Discrete(9)
         self.position_range = spaces.Box(
@@ -55,16 +72,11 @@ class SimpleEnv(gym.Env):
             high=np.array([self.window_width, self.window_height]),
             dtype=np.float32
         )
-        # self.seed(2)
-
-    #
-    # def seed(self, seed=None):
-    #     self.np_random, seed = seeding.np_random()
-    #     return [seed]
 
     def load_config(self):
         self.window_width = Config.window_width
         self.window_height = Config.window_height
+        self.intruder_nearest = Config.n
         self.intruder_size = Config.intruder_size
         self.EPISODES = Config.EPISODES
         self.G = Config.G
@@ -118,25 +130,31 @@ class SimpleEnv(gym.Env):
         return self._get_obs()
 
     def _get_obs(self):
-        def normalize_velocity(velocity):
-            translation = velocity + self.max_speed
-            return translation / (self.max_speed * 2)
+        distance = []
+        for aircraft in self.intruder_list:
+            distance.append(dist(self.drone, aircraft))
+
+        self.nearest_intruder_list = []
+        for i in range(self.intruder_nearest):
+            index = np.argsort(distance)[i]
+            intruder = self.intruder_list[index]
+            self.nearest_intruder_list.append(intruder)
 
         s = []
-        for aircraft in self.intruder_list:
+        for aircraft in self.nearest_intruder_list:
             # (x, y, vx, vy)
             s.append(aircraft.position[0] / Config.window_width)
             s.append(aircraft.position[1] / Config.window_height)
-            s.append(normalize_velocity(aircraft.velocity[0]))
-            s.append(normalize_velocity(aircraft.velocity[1]))
+            s.append(self.normalize_velocity(aircraft.velocity[0]))
+            s.append(self.normalize_velocity(aircraft.velocity[1]))
             # s.append((aircraft.speed - Config.min_speed) / (Config.max_speed - Config.min_speed))
             # s.append(aircraft.heading / (2 * math.pi))
         for i in range(1):
             # (x, y, vx, vy, speed, heading)
             s.append(self.drone.position[0] / Config.window_width)
             s.append(self.drone.position[1] / Config.window_height)
-            s.append(normalize_velocity(self.drone.velocity[0]))
-            s.append(normalize_velocity(self.drone.velocity[1]))
+            s.append(self.normalize_velocity(self.drone.velocity[0]))
+            s.append(self.normalize_velocity(self.drone.velocity[1]))
             s.append((self.drone.speed - Config.min_speed) / (Config.max_speed - Config.min_speed))
             s.append(self.drone.heading / (2 * math.pi))
         s.append(self.goal.position[0] / Config.window_width)
@@ -196,11 +214,11 @@ class SimpleEnv(gym.Env):
                 if dist_intruder < self.NMAC_dist:
                     self.collision_num += 1
                     self.collision_num_up += 1
-                    return [0, Config.NMAC_penalty], True, 'n'  # NMAC
+                    return Config.NMAC_penalty, True, 'n'  # NMAC
 
         if conflict:
             self.conflict_num += 1
-            return [0, Config.conflict_penalty], False, 'c'  # conflict
+            return Config.conflict_penalty, False, 'c'  # conflict
 
         # if ownship out of map
         # if not self.position_range.contains(self.drone.position):
@@ -211,12 +229,12 @@ class SimpleEnv(gym.Env):
         if dist(self.drone, self.goal) < self.goal_radius:
             self.goal_num += 1
             self.goal_num_up += 1
-            return [Config.goal_reward, 0], True, 'g'  # goal
+            return Config.goal_reward, True, 'g'  # goal
 
         if Config.sparse_reward:
-            return [Config.step_penalty, 0], False, ''
+            return Config.step_penalty, False, ''
         else:
-            return [-dist(self.drone, self.goal) / 2400 + Config.step_penalty, 0], False, ''
+            return -dist(self.drone, self.goal) / 2400 + Config.step_penalty, False, ''
 
     def render(self, mode="human"):
         from gym.envs.classic_control import rendering
@@ -232,7 +250,7 @@ class SimpleEnv(gym.Env):
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
         # draw 10 airlines
-        for [x1, x2] in self.lines:
+        for [x1, x2] in self.lines_draw:
             line = rendering.Line(x1, x2)
             line.set_color(0, 0, 255)
             self.viewer.onetime_geoms.append(line)
@@ -246,6 +264,13 @@ class SimpleEnv(gym.Env):
 
         # draw intruders
         for aircraft in self.intruder_list:
+            intruder_img = rendering.Image(os.path.join(__location__, 'images/test.png'), 32, 32)
+            jtransform = rendering.Transform(rotation=aircraft.heading - math.pi / 2, translation=aircraft.position)
+            intruder_img.add_attr(jtransform)
+            intruder_img.set_color(0, 0, 100)
+            self.viewer.onetime_geoms.append(intruder_img)
+
+        for aircraft in self.nearest_intruder_list:
             intruder_img = rendering.Image(os.path.join(__location__, 'images/intruder.png'), 32, 32)
             jtransform = rendering.Transform(rotation=aircraft.heading - math.pi / 2, translation=aircraft.position)
             intruder_img.add_attr(jtransform)
@@ -376,8 +401,15 @@ class SimpleEnv(gym.Env):
                 min_dist = dist_i
         return min_dist
 
+    def normalize_velocity(self, velocity):
+        translation = velocity + self.max_speed
+        return translation / (self.max_speed * 2)
+
     def terminal_info(self):
         return [self.goal_num, self.conflict_num, self.collision_num, self.max_step, self.text_steps_copy]
+
+    def init(self):
+        self.__init__()
 
 
 class Goal:
