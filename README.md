@@ -62,7 +62,7 @@ The adversarial attack methods are in `attacks`:
 
 ## Demo
 Here, we present the demos of four models under
-10 routes scenarios without/with adversarial attacks. For safeDQN and safeDQN-X, we only present the results under safety-oriendted attacks.
+10 routes scenarios without/with adversarial attacks. For safeDQN and safeDQN-X, we only present the results under safety-oriented attacks.
 
 |               |         Without Attack         |                     Uniform Attack                      |           Strategically-Timed Attack            |
 |:-------------:|:------------------------------:|:-------------------------------------------------------:|:-----------------------------------------------:|
