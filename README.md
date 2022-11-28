@@ -72,6 +72,14 @@ Here, we present the gifs of four models under
 | **safeDQN-X** | ![image](gifs/safeDQN-X10.gif) |        ![image](gifs/safeDQN-X10-UniAttack.gif)         |     ![image](gifs/safeDQN-X10-STAttack.gif)     |
 
 
+**Principal Investigator
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/WLeiiiii"><img src="https://github.com/WLeiiiii.png?size=80" width="80px;" alt="Lei Wang"/><br /><sub><b>Lei Wang</b></sub></a><br /><a href="https://github.com/WLeiiii/Gym-ATC-Attack-Project/commits?author=WLeiiiii" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Kaimaoge"><img src="https://github.com/Kaimaoge.png?size=80" width="80px;" alt="Yuankai Wu"/><br /><sub><b>Yuankai Wu</b></sub></a><br /><a href="https://github.com/WLeiiii/Gym-ATC-Attack-Project/commits?author=Kaimaoge" title="Code">💻</a></td>
+  </tr>
+</table>
 
 
 
