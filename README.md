@@ -72,7 +72,7 @@ Here, we present the gifs of four models under
 | **safeDQN-X** | ![image](gifs/safeDQN-X10.gif) |        ![image](gifs/safeDQN-X10-UniAttack.gif)         |     ![image](gifs/safeDQN-X10-STAttack.gif)     |
 
 
-**Principal Investigator
+## Collaborator
 
 <table>
   <tr>
