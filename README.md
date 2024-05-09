@@ -1,7 +1,7 @@
-# Navigating the Skies: A Deep Reinforcement Learning Model with Enhanced Safety and Explainability
+# Explainable and Safe Reinforcement Learning for Autonomous Air Mobility
 
 ## Introduction
-It is the source code of **"Navigating the Skies: A Deep Reinforcement Learning Model with Enhanced Safety and Explainability"**, which presents a novel deep reinforcement learning (DRL)
+It is the source code of **"[Explainable and Safe Reinforcement Learning for Autonomous Air Mobility](https://arxiv.org/abs/2211.13474)"**, which presents a novel deep reinforcement learning (DRL)
 controller to aid conflict resolution for autonomous free flight. To study the safety under adversarial attacks, we additionally propose an adversarial attack strategy that can impose both safety-oriented and efficiency-oriented attacks.
 
 ## Requirements
